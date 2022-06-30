@@ -18,7 +18,6 @@ declare -a PCSX2_PACKAGES=(
   "libgl1-mesa-dev"
   "libgtk-3-dev"
   "libharfbuzz-dev"
-  "libclang-11-dev"
   "libjpeg-dev"
   "liblzma-dev"
   "libpcap0.8-dev"
