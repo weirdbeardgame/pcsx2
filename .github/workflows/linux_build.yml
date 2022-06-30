@@ -95,6 +95,9 @@ jobs:
           key: ${{ inputs.os }} ${{ inputs.platform }} deps ${{ hashFiles('.github/workflows/scripts/linux/build-dependencies.sh') }}
 
       - name: Build Dependencies
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          COMPILER: ${{ inputs.compiler }}
         run: .github/workflows/scripts/linux/build-dependencies.sh
         if: steps.cache-deps.outputs.cache-hit != 'true'
       
@@ -108,26 +111,26 @@ jobs:
       - name: QT 6 paths
         run: sudo ln -s $HOME/Depends/bin/qmake /usr/bin
 
-      - name: Build PCSX2
-        working-directory: build
-        run: ../.github/workflows/scripts/linux/compile.sh
+      #- name: Build PCSX2
+      #  working-directory: build
+      #  run: ../.github/workflows/scripts/linux/compile.sh
 
-      - name: Run Tests
-        working-directory: ./build
-        run: ninja unittests
+      #- name: Run Tests
+      #  working-directory: ./build
+      #  run: ninja unittests
 
-      - name: Package AppImage
-        if: inputs.buildAppImage == true
-        env:
-          PLATFORM: ${{ inputs.platform }}
-          COMPILER: ${{ inputs.compiler }}
-          GUI: ${{ inputs.gui }}
-          name: ${{ steps.artifact-metadata.outputs.artifact-name }}
-        run: .github/workflows/scripts/linux/appimage.sh
+      #- name: Package AppImage
+      #  if: inputs.buildAppImage == true
+      #  env:
+      #    PLATFORM: ${{ inputs.platform }}
+      #    COMPILER: ${{ inputs.compiler }}
+      #    GUI: ${{ inputs.gui }}
+      #    name: ${{ steps.artifact-metadata.outputs.artifact-name }}
+      #  run: .github/workflows/scripts/linux/appimage.sh
 
-      - name: Upload artifact
-        if: inputs.buildAppImage == true
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ steps.artifact-metadata.outputs.artifact-name }}
-          path: ci-artifacts
+      #- name: Upload artifact
+      #  if: inputs.buildAppImage == true
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: ${{ steps.artifact-metadata.outputs.artifact-name }}
+      #    path: ci-artifacts

@@ -8,7 +8,11 @@ QT=6.3.0
 SDL=SDL2-2.0.22
 PATCHELF_VERSION=0.14.5
 
-export CC=gcc-10; export CXX=g++-10
+if [ "${COMPILER}" = "gcc" ]; then
+  export CC=gcc-10; export CXX=g++-10
+else
+  export CC=clang; export CXX=clang++
+fi
 export CFLAGS="-I$INSTALLDIR/include -Os $CFLAGS"
 export CXXFLAGS="-I$INSTALLDIR/include -Os $CXXFLAGS"
 export LDFLAGS="-L$INSTALLDIR/lib $LDFLAGS"

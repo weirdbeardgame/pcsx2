@@ -60,6 +60,7 @@ if [ "${GUI}" != "Qt" ]; then
 	#mkdir -p squashfs-root/usr/lib/wayland
 	#mv squashfs-root/usr/lib/libwayland-* squashfs-root/usr/lib/wayland
 	#rm squashfs-root/usr/lib/libgmodule-2.0.so.0
+	echo "wx"
 fi
 curl -sSfL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -o ./appimagetool.AppImage
 chmod a+x appimagetool.AppImage
