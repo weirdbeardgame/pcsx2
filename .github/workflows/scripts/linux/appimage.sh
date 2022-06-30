@@ -57,9 +57,9 @@ export UPD_INFO="gh-releases-zsync|PCSX2|pcsx2|latest|$name.AppImage.zsync"
 if [ "${GUI}" != "Qt" ]; then
 	# see LD_LIBRARY_PATH in app-variables.sh - the intent is to use system wayland if available but fall back to app-image provided
 	# a little bit hacky but should ensure maximum compatibility
-	#mkdir -p squashfs-root/usr/lib/wayland
-	#mv squashfs-root/usr/lib/libwayland-* squashfs-root/usr/lib/wayland
-	#rm squashfs-root/usr/lib/libgmodule-2.0.so.0
+	mkdir -p squashfs-root/usr/lib/wayland
+	mv squashfs-root/usr/lib/libwayland-* squashfs-root/usr/lib/wayland
+	rm squashfs-root/usr/lib/libgmodule-2.0.so.0
 	echo "wx"
 fi
 curl -sSfL "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -o ./appimagetool.AppImage
