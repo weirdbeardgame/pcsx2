@@ -44,6 +44,7 @@ Q_DECLARE_METATYPE(GSRendererType);
 Q_DECLARE_METATYPE(InputBindingKey);
 Q_DECLARE_METATYPE(CDVD_SourceType);
 Q_DECLARE_METATYPE(Achievements::LoginRequestReason);
+Q_DECLARE_METATYPE(std::string*);
 
 class EmuThread : public QThread
 {
@@ -99,6 +100,7 @@ public Q_SLOTS:
 	void toggleSoftwareRendering();
 	void changeDisc(CDVD_SourceType source, const QString& path);
 	void setELFOverride(const QString& path);
+	void getELFPath(std::string* out);
 	void changeGSDump(const QString& path);
 	void reloadPatches();
 	void reloadInputSources();
