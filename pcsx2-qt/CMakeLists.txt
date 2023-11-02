@@ -21,8 +21,8 @@ target_sources(pcsx2-qt PRIVATE
 	DisplayWidget.cpp
 	DisplayWidget.h
 	EarlyHardwareCheck.cpp
-	LogWindow.cpp
-	LogWindow.h
+	Int64SpinBox.h
+	Int64SpinBox.cpp
 	MainWindow.cpp
 	MainWindow.h
 	MainWindow.ui
@@ -183,6 +183,8 @@ target_sources(pcsx2-qt PRIVATE
 	Debugger/Models/StackModel.h
 	Debugger/Models/DataInspectorModel.cpp
 	Debugger/Models/DataInspectorModel.h
+	Debugger/Delegates/DataInspectorValueColumnDelegate.cpp
+	Debugger/Delegates/DataInspectorValueColumnDelegate.h
 	Tools/InputRecording/NewInputRecordingDlg.cpp
 	Tools/InputRecording/NewInputRecordingDlg.h
 	Tools/InputRecording/NewInputRecordingDlg.ui
