@@ -53,6 +53,8 @@ public:
 	virtual void write8(u32 address, u8 value) = 0;
 	virtual void write16(u32 address, u16 value) = 0;
 	virtual void write32(u32 address, u32 value) = 0;
+	virtual void write64(u32 address, u64 value) = 0;
+	virtual void write128(u32 address, u128 value) = 0;
 
 	// register stuff
 	virtual int getRegisterCategoryCount() = 0;
@@ -107,6 +109,8 @@ public:
 	void write8(u32 address, u8 value) override;
 	void write16(u32 address, u16 value) override;
 	void write32(u32 address, u32 value) override;
+	void write64(u32 address, u64 value) override;
+	void write128(u32 address, u128 value) override;
 
 	// register stuff
 	int getRegisterCategoryCount() override;
@@ -148,6 +152,8 @@ public:
 	void write8(u32 address, u8 value) override;
 	void write16(u32 address, u16 value) override;
 	void write32(u32 address, u32 value) override;
+	void write64(u32 address, u64 value) override;
+	void write128(u32 address, u128 value) override;
 
 	// register stuff
 	int getRegisterCategoryCount() override;
