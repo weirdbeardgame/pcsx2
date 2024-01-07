@@ -24,7 +24,7 @@ static std::thread s_keepalive_thread;
 
 u8 strack;
 u8 etrack;
-track tracks[100];
+cdvdTrack tracks[100];
 
 int curDiskType;
 int curTrayStatus;
@@ -88,7 +88,7 @@ void cdvdParseTOC()
 		if ((entry.control & 0x0C) == 0x04)
 		{
 			std::array<u8, 2352> buffer;
-			// Byte 15 of a raw CD data sector determines the track mode
+			// Byte 15 of a raw CD data sector determines the cdvdTrack mode
 			if (src->ReadSectors2352(entry.lba, 1, buffer.data()) && (buffer[15] & 3) == 2)
 			{
 				tracks[entry.track].type = CDVD_MODE2_TRACK;
@@ -129,7 +129,7 @@ static void keepAliveThread()
 	std::unique_lock<std::mutex> guard(s_keepalive_lock);
 
 	while (!s_keepalive_cv.wait_for(guard, std::chrono::seconds(30),
-									[]() { return !s_keepalive_is_open; }))
+		[]() { return !s_keepalive_is_open; }))
 	{
 
 		//printf(" * keepAliveThread: polling drive.\n");

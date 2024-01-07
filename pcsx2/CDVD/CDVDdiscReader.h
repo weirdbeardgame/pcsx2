@@ -8,6 +8,7 @@
 #endif
 
 #include "common/Pcsx2Defs.h"
+#include "CDVDcommon.h"
 
 #include <array>
 #include <memory>
@@ -17,15 +18,9 @@
 
 class Error;
 
-struct track
-{
-	u32 start_lba;
-	u8 type;
-};
-
 extern u8 strack;
 extern u8 etrack;
-extern track tracks[100];
+extern cdvdTrack tracks[100];
 
 extern int curDiskType;
 extern int curTrayStatus;
