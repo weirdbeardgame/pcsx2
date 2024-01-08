@@ -6,8 +6,28 @@
 #include "common/Pcsx2Defs.h"
 
 #include <string>
+#include <vector>
+#include <map>
 
 class Error;
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Utility Functions                                                         //
+
+static u8 dec_to_bcd(u8 dec)
+{
+	return ((dec / 10) << 4) | (dec % 10);
+}
+
+static void lsn_to_msf(u8* minute, u8* second, u8* frame, u32 lsn)
+{
+	*frame = dec_to_bcd(lsn % 75);
+	lsn /= 75;
+	*second = dec_to_bcd(lsn % 60);
+	lsn /= 60;
+	*minute = dec_to_bcd(lsn % 100);
+}
 
 typedef struct _cdvdSubQ
 {
@@ -24,6 +44,18 @@ typedef struct _cdvdSubQ
 	u8 discF; // current frame offset from first track (BCD encoded)
 } cdvdSubQ;
 
+typedef struct _cdvdTrackIndex
+{
+	bool isPregap;
+	u32 length; // Add this to the LSN
+	u8 trackM; // current minute location on the disc (BCD encoded)
+	u8 trackS; // current sector location on the disc (BCD encoded)
+	u8 trackF; // current frame location on the disc (BCD encoded)
+	u8 discM; // current minute offset from first track (BCD encoded)
+	u8 discS; // current sector offset from first track (BCD encoded)
+	u8 discF; // current frame offset from first track (BCD encoded)
+} cdvdTrackIndex;
+
 typedef struct _cdvdTrack
 {
 	u8 type;
@@ -31,6 +63,9 @@ typedef struct _cdvdTrack
 	int trackNum;
 	int curIndex;
 	cdvdSubQ subQ;
+	u32 trackLength;
+	// There caaannn be more than 2 indexs, but likely there will only be a max of 2 maybe 3
+	std::vector<cdvdTrackIndex> indexs;
 } cdvdTrack;
 
 typedef struct _cdvdTD
@@ -119,6 +154,15 @@ enum class CDVD_SourceType : uint8_t
 	Disc, // use built in Disc api
 	NoDisc, // use built in CDVDnull
 };
+
+static std::map<std::string, u8> trackTypes{
+	{"AUDIO", CDVD_AUDIO_TRACK},
+	{"MODE1", CDVD_MODE1_TRACK},
+	{"MODE2", CDVD_MODE2_TRACK}};
+
+extern u8 strack;
+extern u8 etrack;
+extern cdvdTrack tracks[100];
 
 struct CDVD_API
 {

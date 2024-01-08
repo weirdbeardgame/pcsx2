@@ -3,6 +3,7 @@
 
 #include "CDVDdiscReader.h"
 #include "CDVD/CDVD.h"
+#include "CDVDcommon.h"
 
 #include "common/Error.h"
 
@@ -22,9 +23,6 @@ static std::thread s_keepalive_thread;
 ///////////////////////////////////////////////////////////////////////////////
 // State Information                                                         //
 
-u8 strack;
-u8 etrack;
-cdvdTrack tracks[100];
 
 int curDiskType;
 int curTrayStatus;
@@ -34,24 +32,6 @@ int cmode;
 
 static int lastReadInNewDiskCB = 0;
 static u8 directReadSectorBuffer[2448];
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-// Utility Functions                                                         //
-
-static u8 dec_to_bcd(u8 dec)
-{
-	return ((dec / 10) << 4) | (dec % 10);
-}
-
-static void lsn_to_msf(u8* minute, u8* second, u8* frame, u32 lsn)
-{
-	*frame = dec_to_bcd(lsn % 75);
-	lsn /= 75;
-	*second = dec_to_bcd(lsn % 60);
-	lsn /= 60;
-	*minute = dec_to_bcd(lsn % 100);
-}
 
 // TocStuff
 void cdvdParseTOC()

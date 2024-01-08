@@ -9,10 +9,13 @@
 #include "common/FileSystem.h"
 #include "common/Path.h"
 #include "common/StringUtil.h"
+#include "common/BitUtils.h"
 
 #include "libchdr/chd.h"
 #include "fmt/format.h"
 #include "xxhash.h"
+
+#include "CDVDcommon.h"
 
 static constexpr u32 MAX_PARENTS = 32; // Surely someone wouldn't be insane enough to go beyond this...
 static std::vector<std::pair<std::string, chd_header>> s_chd_hash_cache; // <filename, header>
@@ -240,9 +243,13 @@ u32 ChdFileReader::GetBlockCount() const
 bool ChdFileReader::ParseTOC(u64* out_frame_count)
 {
 	u64 total_frames = 0;
-	int max_found_track = -1;
 
-	for (int search_index = 0;; search_index++)
+	chd_error err = CHDERR_NONE;
+
+	u32 disc_lsn = 0;
+	u32 file_lsn = 0;
+
+	while (err == CHDERR_NONE)
 	{
 		char metadata_str[256];
 		char type_str[256];
@@ -252,7 +259,7 @@ bool ChdFileReader::ParseTOC(u64* out_frame_count)
 		u32 metadata_length;
 
 		int track_num = 0, frames = 0, pregap_frames = 0, postgap_frames = 0;
-		chd_error err = chd_get_metadata(ChdFile, CDROM_TRACK_METADATA2_TAG, search_index, metadata_str, sizeof(metadata_str),
+		err = chd_get_metadata(ChdFile, CDROM_TRACK_METADATA2_TAG, etrack, metadata_str, sizeof(metadata_str),
 			&metadata_length, nullptr, nullptr);
 		if (err == CHDERR_NONE)
 		{
@@ -266,7 +273,7 @@ bool ChdFileReader::ParseTOC(u64* out_frame_count)
 		else
 		{
 			// try old version
-			err = chd_get_metadata(ChdFile, CDROM_TRACK_METADATA_TAG, search_index, metadata_str, sizeof(metadata_str),
+			err = chd_get_metadata(ChdFile, CDROM_TRACK_METADATA_TAG, etrack, metadata_str, sizeof(metadata_str),
 				&metadata_length, nullptr, nullptr);
 			if (err != CHDERR_NONE)
 			{
@@ -284,19 +291,64 @@ bool ChdFileReader::ParseTOC(u64* out_frame_count)
 		DevCon.WriteLn(fmt::format("CHD Track {}: frames:{} pregap:{} postgap:{} type:{} sub:{} pgtype:{} pgsub:{}",
 			track_num, frames, pregap_frames, postgap_frames, type_str, subtype_str, pgtype_str, pgsub_str));
 
-		// PCSX2 doesn't currently support multiple tracks for CDs.
-		if (track_num != 1)
+		cdvdTrack track;
+		cdvdSubQ subQ;
+		memset(&track, 0, sizeof(cdvdTrack));
+		memset(&subQ, 0, sizeof(cdvdSubQ));
+
+		track.trackNum = track_num;
+		track.type = trackTypes[type_str];
+
+		if (track.trackNum == 1)
 		{
-			Console.Warning(fmt::format("  Ignoring track {} in CHD.", track_num, frames));
-			continue;
+			// Assume there's a pregap of 2 seconds if it's not an audio track and is track 1
+			if (pregap_frames <= 0 && track.type != CDVD_AUDIO_TRACK)
+			{
+				pregap_frames = 150;
+			}
 		}
 
+		if (pregap_frames > 0)
+		{
+			cdvdTrackIndex pregap;
+			pregap.isPregap = true;
+			pregap.length = pregap_frames;
+			lsn_to_msf(&pregap.discM, &pregap.discS, &pregap.discF, disc_lsn);
+			lsn_to_msf(&pregap.trackM, &pregap.trackS, &pregap.trackF, pregap_frames);
+
+			track.indexs.push_back(pregap);
+			disc_lsn += pregap_frames;
+			file_lsn += pregap_frames;
+			frames -= pregap_frames;
+		}
+
+		subQ.trackNum = track_num;
+		// CHD only serializes two indexes. The PREGAP and the main data index. See: https://github.com/mamedev/mame/issues/10308
+		subQ.trackIndex = 1;
+		subQ.ctrl = track.type;
+		lsn_to_msf(&subQ.discM, &subQ.discS, &subQ.discF, disc_lsn);
+		lsn_to_msf(&subQ.trackM, &subQ.trackS, &subQ.trackF, file_lsn);
+
+		track.subQ = subQ;
+
+		disc_lsn += static_cast<u32>(frames);
+
+		tracks[track_num] = track;
+
+		// libchdr cdrom.h states that tracks are padded to a multiple of 4. Duck suggests aligning the file_lsn to that
+		file_lsn = Common::AlignUp(file_lsn, 4);
+
+		etrack += 1;
+
 		total_frames += static_cast<u64>(pregap_frames) + static_cast<u64>(frames) + static_cast<u64>(postgap_frames);
-		max_found_track = std::max(max_found_track, track_num);
+		if (track_num > etrack)
+		{
+			etrack = dec_to_bcd(track_num);
+		}
 	}
 
 	// No tracks in TOC?
-	if (max_found_track < 0)
+	if (etrack < 0)
 		return false;
 
 	// Compute total data size.

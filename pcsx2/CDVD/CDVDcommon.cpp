@@ -27,6 +27,11 @@
 
 const CDVD_API* CDVD = nullptr;
 
+cdvdTrack tracks[100];
+
+u8 strack;
+u8 etrack;
+
 // ----------------------------------------------------------------------------
 // diskTypeCached
 // Internal disc type cache, to reduce the overhead of disc type checks, which are
@@ -569,7 +574,7 @@ static s32 NODISCdummyS32()
 	return 0;
 }
 
-static void NODISCnewDiskCB(void (*/* callback */)())
+static void NODISCnewDiskCB(void (* /* callback */)())
 {
 }
 

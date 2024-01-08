@@ -18,10 +18,6 @@
 
 class Error;
 
-extern u8 strack;
-extern u8 etrack;
-extern cdvdTrack tracks[100];
-
 extern int curDiskType;
 extern int curTrayStatus;
 
