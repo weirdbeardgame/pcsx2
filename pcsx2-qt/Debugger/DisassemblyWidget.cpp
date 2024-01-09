@@ -744,11 +744,10 @@ inline QString DisassemblyWidget::DisassemblyStringFromAddress(u32 address, QFon
 
 	bool isFunctionNoReturn = false;
 
-	const std::string addressSymbol = m_cpu->GetSymbolMap().GetLabelName(address);
-	if(m_cpu->GetSymbolMap().GetFunctionStart(address) == address)
-	{
-		isFunctionNoReturn = m_cpu->GetSymbolMap().GetFunctionNoReturn(address);
-	}
+	m_cpu->GetSymbolGuardian().Read([&](const ccc::SymbolDatabase& database) {
+		//database.symbol_exists_with_starting_address(Address address)
+	});
+
 	const auto demangler = demangler::CDemangler::createGcc();
 	const bool showOpcode = m_showInstructionOpcode && m_cpu->isAlive();
 
