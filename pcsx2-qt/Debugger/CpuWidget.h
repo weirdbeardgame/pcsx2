@@ -22,6 +22,8 @@
 
 using namespace MipsStackWalk;
 
+class GlobalVariablesWidget;
+
 class CpuWidget final : public QWidget
 {
 	Q_OBJECT
@@ -95,4 +97,8 @@ private:
 
 	bool m_demangleFunctions = true;
 	bool m_moduleView = true;
+	u32 m_initialResultsLoadLimit = 20000;
+	u32 m_numResultsAddedPerLoad = 10000;
+	
+	GlobalVariablesWidget* m_globals_tab = nullptr;
 };

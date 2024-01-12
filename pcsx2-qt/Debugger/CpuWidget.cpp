@@ -29,6 +29,10 @@
 #include <QtCore/QRegularExpressionMatchIterator>
 #include <QtCore/QStringList>
 #include <QtWidgets/QScrollBar>
+<<<<<<< HEAD
+=======
+#include "GlobalVariablesWidget.h"
+>>>>>>> 2c6e29d47 (Debugger: Integrate the global variable inspector into the debugger GUI)
 
 using namespace QtUtils;
 using namespace MipsStackWalk;
@@ -125,6 +129,11 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 	}
 	this->repaint();
 
+	// Ensures we don't retrigger the load results function unintentionally
+	m_resultsLoadTimer.setInterval(100);
+	m_resultsLoadTimer.setSingleShot(true);
+	connect(&m_resultsLoadTimer, &QTimer::timeout, this, &CpuWidget::loadSearchResults);
+
 	m_ui.savedAddressesList->setModel(&m_savedAddressesModel);
 	m_ui.savedAddressesList->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_ui.savedAddressesList, &QTableView::customContextMenuRequested, this, &CpuWidget::onSavedAddressesListContextMenu);
@@ -133,22 +142,12 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 		m_ui.savedAddressesList->horizontalHeader()->setSectionResizeMode(i++, mode);
 	}
 	QTableView* savedAddressesTableView = m_ui.savedAddressesList;
-	connect(m_ui.savedAddressesList->model(), &QAbstractItemModel::dataChanged, [savedAddressesTableView](const QModelIndex& topLeft) {
+	connect(m_ui.savedAddressesList->model(), &QAbstractItemModel::dataChanged,	[savedAddressesTableView](const QModelIndex& topLeft) {
 		savedAddressesTableView->resizeColumnToContents(topLeft.column());
 	});
-
-	DebuggerSettingsManager::loadGameSettings(&m_bpModel);
-	DebuggerSettingsManager::loadGameSettings(&m_savedAddressesModel);
-
-	connect(m_ui.memorySearchWidget, &MemorySearchWidget::addAddressToSavedAddressesList, this, &CpuWidget::addAddressToSavedAddressesList);
-	connect(m_ui.memorySearchWidget, &MemorySearchWidget::goToAddressInDisassemblyView, [this](u32 address) { m_ui.disassemblyWidget->gotoAddress(address);	});
-	connect(m_ui.memorySearchWidget, &MemorySearchWidget::goToAddressInMemoryView, m_ui.memoryviewWidget, &MemoryViewWidget::gotoAddress);
-	connect(m_ui.memorySearchWidget, &MemorySearchWidget::switchToMemoryViewTab, [this]() { m_ui.tabWidget->setCurrentWidget(m_ui.tab_memory); });
-	m_ui.memorySearchWidget->setCpu(&m_cpu);
-
-	m_refreshDebuggerTimer.setInterval(1000);
-	connect(&m_refreshDebuggerTimer, &QTimer::timeout, this, &CpuWidget::refreshDebugger);
-	m_refreshDebuggerTimer.start();
+	
+	m_globals_tab = new GlobalVariablesWidget(m_cpu, this);
+	m_ui.tabWidget->addTab(m_globals_tab, tr("Globals"));
 }
 
 CpuWidget::~CpuWidget() = default;
