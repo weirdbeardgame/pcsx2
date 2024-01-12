@@ -1158,6 +1158,17 @@ target_link_libraries(PCSX2_FLAGS INTERFACE
 	rcheevos
 	discord-rpc
 	demangler
+	SDL2::SDL2
+	ZLIB::ZLIB
+	SoundTouch::SoundTouch
+	PNG::PNG
+	LibLZMA::LibLZMA
+	Zstd::Zstd
+	${LIBC_LIBRARIES}
+)
+
+target_link_libraries(PCSX2_FLAGS INTERFACE
+	demanglegnu
 	simpleini
 	freesurround
 	SDL2::SDL2

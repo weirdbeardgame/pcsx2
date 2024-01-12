@@ -7,7 +7,6 @@
 #include "DebugTools/DisassemblyManager.h"
 #include "DebugTools/Breakpoints.h"
 #include "DebugTools/MipsAssembler.h"
-#include "demangler/demangler.h"
 
 #include "QtUtils.h"
 #include "QtHost.h"
@@ -748,27 +747,7 @@ inline QString DisassemblyWidget::DisassemblyStringFromAddress(u32 address, QFon
 		//database.symbol_exists_with_starting_address(Address address)
 	});
 
-	const auto demangler = demangler::CDemangler::createGcc();
-	const bool showOpcode = m_showInstructionOpcode && m_cpu->isAlive();
-
-	QString lineString;
-	if (showOpcode)
-	{
-		lineString = QString(" %1 %2 %3  %4 %5  %6 %7");
-	}
-	else
-	{
-		lineString = QString(" %1 %2  %3 %4  %5 %6");
-	}
-
-	if(isFunctionNoReturn)
-	{
-		lineString = lineString.arg("NR");
-	}
-	else
-	{
-		lineString = lineString.arg("  ");
-	}
+	QString lineString("  %1  %2 %3  %4 %5");
 
 	if (addressSymbol.empty()) // The address wont have symbol text if it's the start of a function for example
 		lineString = lineString.arg(address, 8, 16, QChar('0')).toUpper();
@@ -776,19 +755,7 @@ inline QString DisassemblyWidget::DisassemblyStringFromAddress(u32 address, QFon
 	{
 		// We want this text elided
 		QFontMetrics metric(font);
-		QString symbolString;
-		if (m_demangleFunctions)
-		{
-			symbolString = QString::fromStdString(demangler->demangleToString(addressSymbol));
-			if (symbolString.isEmpty())
-			{
-				symbolString = QString::fromStdString(addressSymbol);
-			}
-		}
-		else
-		{
-			symbolString = QString::fromStdString(addressSymbol);
-		}
+		QString symbolString = QString::fromStdString(addressSymbol);
 
 		lineString = lineString.arg(metric.elidedText(symbolString, Qt::ElideRight, (selected ? 32 : 7) * font.pointSize()));
 	}
