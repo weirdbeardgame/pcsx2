@@ -12,14 +12,11 @@
 
 #include "DebugTools/DebugInterface.h"
 #include "DebugTools/Breakpoints.h"
-#include "DebugTools/BiosDebugData.h"
 #include "DebugTools/MipsStackWalk.h"
 
 #include "QtUtils.h"
 
 #include "common/Console.h"
-
-#include "demangler/demangler.h"
 
 #include <QtGui/QClipboard>
 #include <QtWidgets/QMessageBox>
@@ -29,10 +26,7 @@
 #include <QtCore/QRegularExpressionMatchIterator>
 #include <QtCore/QStringList>
 #include <QtWidgets/QScrollBar>
-<<<<<<< HEAD
-=======
 #include "GlobalVariablesWidget.h"
->>>>>>> 2c6e29d47 (Debugger: Integrate the global variable inspector into the debugger GUI)
 
 using namespace QtUtils;
 using namespace MipsStackWalk;
@@ -114,6 +108,20 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 	connect(m_ui.btnRefreshFunctions, &QPushButton::clicked, [this] { updateFunctionList(); });
 	connect(m_ui.txtFuncSearch, &QLineEdit::textChanged, [this] { updateFunctionList(); });
 
+	connect(m_ui.btnSearch, &QPushButton::clicked, this, &CpuWidget::onSearchButtonClicked);
+	connect(m_ui.btnFilterSearch, &QPushButton::clicked, this, &CpuWidget::onSearchButtonClicked);
+	connect(m_ui.listSearchResults, &QListWidget::itemDoubleClicked, [this](QListWidgetItem* item) {
+		m_ui.tabWidget->setCurrentWidget(m_ui.tab_memory);
+		m_ui.memoryviewWidget->gotoAddress(item->text().toUInt(nullptr, 16));
+	});
+	connect(m_ui.listSearchResults->verticalScrollBar(), &QScrollBar::valueChanged, this, &CpuWidget::onSearchResultsListScroll);
+	connect(m_ui.listSearchResults, &QListView::customContextMenuRequested, this, &CpuWidget::onListSearchResultsContextMenu);
+	connect(m_ui.cmbSearchType, &QComboBox::currentIndexChanged, [this](int i) {
+		if (i < 4)
+			m_ui.chkSearchHex->setEnabled(true);
+		else
+			m_ui.chkSearchHex->setEnabled(false);
+	});
 	m_ui.disassemblyWidget->SetCpu(&cpu);
 	m_ui.registerWidget->SetCpu(&cpu);
 	m_ui.memoryviewWidget->SetCpu(&cpu);
@@ -142,10 +150,10 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 		m_ui.savedAddressesList->horizontalHeader()->setSectionResizeMode(i++, mode);
 	}
 	QTableView* savedAddressesTableView = m_ui.savedAddressesList;
-	connect(m_ui.savedAddressesList->model(), &QAbstractItemModel::dataChanged,	[savedAddressesTableView](const QModelIndex& topLeft) {
+	connect(m_ui.savedAddressesList->model(), &QAbstractItemModel::dataChanged, [savedAddressesTableView](const QModelIndex& topLeft) {
 		savedAddressesTableView->resizeColumnToContents(topLeft.column());
 	});
-	
+
 	m_globals_tab = new GlobalVariablesWidget(m_cpu, this);
 	m_ui.tabWidget->addTab(m_globals_tab, tr("Globals"));
 }
@@ -462,6 +470,98 @@ void CpuWidget::contextBPListPasteCSV()
 			QString matchedValue = match.captured(0);
 			fields << matchedValue.mid(1, matchedValue.length() - 2);
 		}
+
+		if (fields.size() != BreakpointModel::BreakpointColumns::COLUMN_COUNT)
+		{
+			Console.WriteLn("Debugger CSV Import: Invalid number of columns, skipping");
+			continue;
+		}
+
+		bool ok;
+		int type = fields[0].toUInt(&ok);
+		if (!ok)
+		{
+			Console.WriteLn("Debugger CSV Import: Failed to parse type '%s', skipping", fields[0].toUtf8().constData());
+			continue;
+		}
+
+		// This is how we differentiate between breakpoints and memchecks
+		if (type == MEMCHECK_INVALID)
+		{
+			BreakPoint bp;
+
+			// Address
+			bp.addr = fields[1].toUInt(&ok, 16);
+			if (!ok)
+			{
+				Console.WriteLn("Debugger CSV Import: Failed to parse address '%s', skipping", fields[1].toUtf8().constData());
+				continue;
+			}
+
+			// Condition
+			if (fields[4] != "No Condition")
+			{
+				PostfixExpression expr;
+				bp.hasCond = true;
+				bp.cond.debug = &m_cpu;
+
+				if (!m_cpu.initExpression(fields[4].toUtf8().constData(), expr))
+				{
+					Console.WriteLn("Debugger CSV Import: Failed to parse cond '%s', skipping", fields[4].toUtf8().constData());
+					continue;
+				}
+				bp.cond.expression = expr;
+				strncpy(&bp.cond.expressionString[0], fields[4].toUtf8().constData(), sizeof(bp.cond.expressionString));
+			}
+
+			// Enabled
+			bp.enabled = fields[6].toUInt(&ok);
+			if (!ok)
+			{
+				Console.WriteLn("Debugger CSV Import: Failed to parse enable flag '%s', skipping", fields[1].toUtf8().constData());
+				continue;
+			}
+
+			m_bpModel.insertBreakpointRows(0, 1, {bp});
+		}
+		else
+		{
+			MemCheck mc;
+			// Mode
+			if (type >= MEMCHECK_INVALID)
+			{
+				Console.WriteLn("Debugger CSV Import: Failed to parse cond type '%s', skipping", fields[BreakpointModel::BreakpointColumns::TYPE].toUtf8().constData());
+				continue;
+			}
+			mc.cond = static_cast<MemCheckCondition>(type);
+
+			// Address
+			mc.start = fields[1].toUInt(&ok, 16);
+			if (!ok)
+			{
+				Console.WriteLn("Debugger CSV Import: Failed to parse address '%s', skipping", fields[1].toUtf8().constData());
+				continue;
+			}
+
+			// Size
+			mc.end = fields[2].toUInt(&ok) + mc.start;
+			if (!ok)
+			{
+				Console.WriteLn("Debugger CSV Import: Failed to parse length '%s', skipping", fields[1].toUtf8().constData());
+				continue;
+			}
+
+			// Result
+			const int result = fields[BreakpointModel::BreakpointColumns::ENABLED].toUInt(&ok);
+			if (!ok)
+			{
+				Console.WriteLn("Debugger CSV Import: Failed to parse result flag '%s', skipping", fields[BreakpointModel::BreakpointColumns::ENABLED].toUtf8().constData());
+				continue;
+			}
+			mc.result = static_cast<MemCheckResult>(result);
+
+			m_bpModel.insertBreakpointRows(0, 1, {mc});
+		}
 		m_bpModel.loadBreakpointFromFieldList(fields);
 	}
 }
@@ -590,83 +690,31 @@ void CpuWidget::updateFunctionList(bool whenEmpty)
 	if (!m_cpu.isAlive())
 		return;
 
-	if (m_cpu.getCpuType() == BREAKPOINT_EE || !m_moduleView)
-	{
+	SymbolGuardian& guardian = m_cpu.GetSymbolGuardian();
+	guardian.Read([&](const ccc::SymbolDatabase& database) -> void {
 		if (whenEmpty && m_ui.listFunctions->count())
 			return;
 
 		m_ui.listFunctions->clear();
 
-		const auto demangler = demangler::CDemangler::createGcc();
-		const QString filter = m_ui.txtFuncSearch->text().toLower();
-		for (const auto& symbol : m_cpu.GetSymbolMap().GetAllSymbols(SymbolType::ST_FUNCTION))
+		QString filter = m_ui.txtFuncSearch->text();
+
+		for (const ccc::Function& function : database.functions)
 		{
-			QString symbolName = symbol.name.c_str();
-			if (m_demangleFunctions)
-			{
-				symbolName = QString(demangler->demangleToString(symbol.name).c_str());
+			ccc::Address address = function.address();
+			if (!address.valid())
+				continue;
 
-				// If the name isn't mangled, or it doesn't understand, it'll return an empty string
-				// Fall back to the original name if this is the case
-				if (symbolName.isEmpty())
-					symbolName = symbol.name.c_str();
-			}
-
-			if (filter.size() && !symbolName.toLower().contains(filter))
+			QString name = QString::fromStdString(function.name());
+			if (!filter.isEmpty() && !name.contains(filter, Qt::CaseInsensitive))
 				continue;
 
 			QListWidgetItem* item = new QListWidgetItem();
-
-			item->setText(QString("%0 %1").arg(FilledQStringFromValue(symbol.address, 16)).arg(symbolName));
-
-			item->setData(Qt::UserRole, symbol.address);
-
+			item->setText(QString("%0 %1").arg(FilledQStringFromValue(address.value, 16)).arg(name));
+			item->setData(Qt::UserRole, address.value);
 			m_ui.listFunctions->addItem(item);
 		}
-	}
-	else
-	{
-		const auto demangler = demangler::CDemangler::createGcc();
-		const QString filter = m_ui.txtFuncSearch->text().toLower();
-
-		m_ui.treeModules->clear();
-		for (const auto& module : m_cpu.GetSymbolMap().GetModules())
-		{
-			QTreeWidgetItem* moduleItem = new QTreeWidgetItem(m_ui.treeModules, QStringList({QString(module.name.c_str()), QString("%0.%1").arg(module.version.major).arg(module.version.minor), QString::number(module.exports.size())}));
-			QList<QTreeWidgetItem*> functions;
-			for (const auto& sym : module.exports)
-			{
-				if (!QString(sym.name.c_str()).toLower().contains(filter))
-					continue;
-
-				QString symbolName = QString(sym.name.c_str());
-				if (m_demangleFunctions)
-				{
-					QString demangledName = QString(demangler->demangleToString(sym.name).c_str());
-					if (!demangledName.isEmpty())
-						symbolName = demangledName;
-				}
-				QTreeWidgetItem* functionItem = new QTreeWidgetItem(moduleItem, QStringList(QString("%0 %1").arg(FilledQStringFromValue(sym.address, 16)).arg(symbolName)));
-				functionItem->setData(0, Qt::UserRole, sym.address);
-				functions.append(functionItem);
-			}
-			moduleItem->addChildren(functions);
-
-			if (!filter.isEmpty() && functions.size())
-			{
-				moduleItem->setExpanded(true);
-				m_ui.treeModules->insertTopLevelItem(0, moduleItem);
-			}
-			else if (filter.isEmpty())
-			{
-				m_ui.treeModules->insertTopLevelItem(0, moduleItem);
-			}
-			else
-			{
-				delete moduleItem;
-			}
-		}
-	}
+	});
 }
 
 void CpuWidget::updateThreads()
@@ -936,4 +984,36 @@ void CpuWidget::saveBreakpointsToDebuggerSettings()
 void CpuWidget::saveSavedAddressesToDebuggerSettings()
 {
 	DebuggerSettingsManager::saveGameSettings(&m_savedAddressesModel);
+}
+
+void CpuWidget::onSearchResultsListScroll(u32 value)
+{
+	bool hasResultsToLoad = static_cast<size_t>(m_ui.listSearchResults->count()) < m_searchResults.size();
+	bool scrolledSufficiently = value > (m_ui.listSearchResults->verticalScrollBar()->maximum() * 0.95);
+
+	if (!m_resultsLoadTimer.isActive() && hasResultsToLoad && scrolledSufficiently)
+	{
+		// Load results once timer ends, allowing us to debounce repeated requests and only do one load.
+		m_resultsLoadTimer.start();
+	}
+}
+
+void CpuWidget::loadSearchResults()
+{
+	const u32 numLoaded = m_ui.listSearchResults->count();
+	const u32 amountLeftToLoad = m_searchResults.size() - numLoaded;
+	if (amountLeftToLoad < 1)
+		return;
+
+	const bool isFirstLoad = numLoaded == 0;
+	const u32 maxLoadAmount = isFirstLoad ? m_initialResultsLoadLimit : m_numResultsAddedPerLoad;
+	const u32 numToLoad = amountLeftToLoad > maxLoadAmount ? maxLoadAmount : amountLeftToLoad;
+
+	for (u32 i = 0; i < numToLoad; i++)
+	{
+		u32 address = m_searchResults.at(numLoaded + i);
+		QListWidgetItem* item = new QListWidgetItem(QtUtils::FilledQStringFromValue(address, 16));
+		item->setData(Qt::UserRole, address);
+		m_ui.listSearchResults->addItem(item);
+	}
 }
