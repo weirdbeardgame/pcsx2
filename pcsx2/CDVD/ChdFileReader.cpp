@@ -322,13 +322,23 @@ bool ChdFileReader::ParseTOC(u64* out_frame_count)
 			frames -= pregap_frames;
 		}
 
+		// ToDo, this will work for Cue files. Needs loop for other types
+
+		cdvdTrackIndex index;
+		index.isPregap = false;
+		index.length = frames;
+		lsn_to_msf(&index.discM, &index.discS, &index.discF, disc_lsn);
+		lsn_to_msf(&index.trackM, &index.trackS, &index.trackF, file_lsn);
+
+		track.indexs.push_back(index);
+		disc_lsn += pregap_frames;
+		file_lsn += pregap_frames;
+
 		subQ.trackNum = track_num;
-		// CHD only serializes two indexes. The PREGAP and the main data index. See: https://github.com/mamedev/mame/issues/10308
 		subQ.trackIndex = 1;
 		subQ.ctrl = track.type;
 		lsn_to_msf(&subQ.discM, &subQ.discS, &subQ.discF, disc_lsn);
 		lsn_to_msf(&subQ.trackM, &subQ.trackS, &subQ.trackF, file_lsn);
-
 		track.subQ = subQ;
 
 		disc_lsn += static_cast<u32>(frames);
