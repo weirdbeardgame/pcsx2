@@ -26,7 +26,6 @@
 #include <QtCore/QRegularExpressionMatchIterator>
 #include <QtCore/QStringList>
 #include <QtWidgets/QScrollBar>
-#include "GlobalVariablesWidget.h"
 
 using namespace QtUtils;
 using namespace MipsStackWalk;
@@ -100,6 +99,7 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 		i++;
 	}
 
+<<<<<<< HEAD
 	connect(m_ui.tabWidgetRegFunc, &QTabWidget::currentChanged, [this](int i) {if(i == 1){updateFunctionList(true);} });
 	connect(m_ui.listFunctions, &QListWidget::customContextMenuRequested, this, &CpuWidget::onFuncListContextMenu);
 	connect(m_ui.listFunctions, &QListWidget::itemDoubleClicked, this, &CpuWidget::onFuncListDoubleClick);
@@ -108,6 +108,9 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 	connect(m_ui.btnRefreshFunctions, &QPushButton::clicked, [this] { updateFunctionList(); });
 	connect(m_ui.txtFuncSearch, &QLineEdit::textChanged, [this] { updateFunctionList(); });
 
+=======
+	m_ui.listSearchResults->setContextMenuPolicy(Qt::CustomContextMenu);
+>>>>>>> bb0cbcc88 (Debugger: Reimplement function list based on the new symbol tree)
 	connect(m_ui.btnSearch, &QPushButton::clicked, this, &CpuWidget::onSearchButtonClicked);
 	connect(m_ui.btnFilterSearch, &QPushButton::clicked, this, &CpuWidget::onSearchButtonClicked);
 	connect(m_ui.listSearchResults, &QListWidget::itemDoubleClicked, [this](QListWidgetItem* item) {
@@ -153,9 +156,9 @@ CpuWidget::CpuWidget(QWidget* parent, DebugInterface& cpu)
 	connect(m_ui.savedAddressesList->model(), &QAbstractItemModel::dataChanged, [savedAddressesTableView](const QModelIndex& topLeft) {
 		savedAddressesTableView->resizeColumnToContents(topLeft.column());
 	});
-
-	m_globals_tab = new GlobalVariablesWidget(m_cpu, this);
-	m_ui.tabWidget->addTab(m_globals_tab, tr("Globals"));
+	
+	m_ui.functionTreeWidget->setCPU(&cpu);
+	m_ui.globalVariableTreeWidget->setCPU(&cpu);
 }
 
 CpuWidget::~CpuWidget() = default;
@@ -567,6 +570,7 @@ void CpuWidget::contextBPListPasteCSV()
 }
 
 void CpuWidget::onSavedAddressesListContextMenu(QPoint pos)
+<<<<<<< HEAD
 {
 	QMenu* contextMenu = new QMenu("Saved Addresses List Context Menu", m_ui.savedAddressesList);
 
@@ -686,35 +690,151 @@ void CpuWidget::addAddressToSavedAddressesList(u32 address)
 }
 
 void CpuWidget::updateFunctionList(bool whenEmpty)
+=======
+>>>>>>> bb0cbcc88 (Debugger: Reimplement function list based on the new symbol tree)
 {
-	if (!m_cpu.isAlive())
+	QMenu* contextMenu = new QMenu("Saved Addresses List Context Menu", m_ui.savedAddressesList);
+
+	QAction* newAction = new QAction(tr("New"), m_ui.savedAddressesList);
+	connect(newAction, &QAction::triggered, this, &CpuWidget::contextSavedAddressesListNew);
+	contextMenu->addAction(newAction);
+
+	const QModelIndex indexAtPos = m_ui.savedAddressesList->indexAt(pos);
+	const bool isIndexValid = indexAtPos.isValid();
+
+	if (isIndexValid)
+	{
+		if (m_cpu.isAlive())
+		{
+			QAction* goToAddressMemViewAction = new QAction(tr("Go to in Memory View"), m_ui.savedAddressesList);
+			connect(goToAddressMemViewAction, &QAction::triggered, this, [this, indexAtPos]() {
+				const QModelIndex rowAddressIndex = m_ui.savedAddressesList->model()->index(indexAtPos.row(), 0, QModelIndex());
+				m_ui.memoryviewWidget->gotoAddress(m_ui.savedAddressesList->model()->data(rowAddressIndex, Qt::UserRole).toUInt());
+				m_ui.tabWidget->setCurrentWidget(m_ui.tab_memory);
+			});
+			contextMenu->addAction(goToAddressMemViewAction);
+
+			QAction* goToAddressDisassemblyAction = new QAction(tr("Go to in Disassembly"), m_ui.savedAddressesList);
+			connect(goToAddressDisassemblyAction, &QAction::triggered, this, [this, indexAtPos]() {
+				const QModelIndex rowAddressIndex = m_ui.savedAddressesList->model()->index(indexAtPos.row(), 0, QModelIndex());
+				m_ui.disassemblyWidget->gotoAddress(m_ui.savedAddressesList->model()->data(rowAddressIndex, Qt::UserRole).toUInt());
+			});
+			contextMenu->addAction(goToAddressDisassemblyAction);
+		}
+
+		QAction* copyAction = new QAction(indexAtPos.column() == 0 ? tr("Copy Address") : tr("Copy Text"), m_ui.savedAddressesList);
+		connect(copyAction, &QAction::triggered, [this, indexAtPos]() {
+			QGuiApplication::clipboard()->setText(m_ui.savedAddressesList->model()->data(indexAtPos, Qt::DisplayRole).toString());
+		});
+		contextMenu->addAction(copyAction);
+	}
+
+	if (m_ui.savedAddressesList->model()->rowCount() > 0)
+	{
+		QAction* actionExportCSV = new QAction(tr("Copy all as CSV"), m_ui.savedAddressesList);
+		connect(actionExportCSV, &QAction::triggered, [this]() {
+			QGuiApplication::clipboard()->setText(QtUtils::AbstractItemModelToCSV(m_ui.savedAddressesList->model(), Qt::DisplayRole, true));
+		});
+		contextMenu->addAction(actionExportCSV);
+	}
+
+	QAction* actionImportCSV = new QAction(tr("Paste from CSV"), m_ui.savedAddressesList);
+	connect(actionImportCSV, &QAction::triggered, this, &CpuWidget::contextSavedAddressesListPasteCSV);
+	contextMenu->addAction(actionImportCSV);
+
+	contextMenu->popup(m_ui.savedAddressesList->viewport()->mapToGlobal(pos));
+
+	if (isIndexValid)
+	{
+		QAction* deleteAction = new QAction(tr("Delete"), m_ui.savedAddressesList);
+		connect(deleteAction, &QAction::triggered, this, [this, indexAtPos]() {
+			m_ui.savedAddressesList->model()->removeRows(indexAtPos.row(), 1);
+		});
+		contextMenu->addAction(deleteAction);
+	}
+}
+
+void CpuWidget::contextSavedAddressesListPasteCSV()
+{
+	QString csv = QGuiApplication::clipboard()->text();
+	// Skip header
+	csv = csv.mid(csv.indexOf('\n') + 1);
+
+	for (const QString& line : csv.split('\n'))
+	{
+		QStringList fields;
+		// In order to handle text with commas in them we must wrap values in quotes to mark
+		// where a value starts and end so that text commas aren't identified as delimiters.
+		// So matches each quote pair, parse it out, and removes the quotes to get the value.
+		QRegularExpression eachQuotePair(R"("([^"]|\\.)*")");
+		QRegularExpressionMatchIterator it = eachQuotePair.globalMatch(line);
+		while (it.hasNext())
+		{
+			QRegularExpressionMatch match = it.next();
+			QString matchedValue = match.captured(0);
+			fields << matchedValue.mid(1, matchedValue.length() - 2);
+		}
+
+		if (fields.size() != SavedAddressesModel::HeaderColumns::COLUMN_COUNT)
+		{
+			Console.WriteLn("Debugger CSV Import: Invalid number of columns, skipping");
+			continue;
+		}
+
+		bool ok;
+		const u32 address = fields[SavedAddressesModel::HeaderColumns::ADDRESS].toUInt(&ok, 16);
+		if (!ok)
+		{
+			Console.WriteLn("Debugger CSV Import: Failed to parse address '%s', skipping", fields[SavedAddressesModel::HeaderColumns::ADDRESS].toUtf8().constData());
+			continue;
+		}
+
+		const QString label = fields[SavedAddressesModel::HeaderColumns::LABEL];
+		const QString description = fields[SavedAddressesModel::HeaderColumns::DESCRIPTION];
+		const SavedAddressesModel::SavedAddress importedAddress = {address, label, description};
+		m_savedAddressesModel.addRow(importedAddress);
+	}
+}
+
+void CpuWidget::contextSavedAddressesListNew()
+{
+	qobject_cast<SavedAddressesModel*>(m_ui.savedAddressesList->model())->addRow();
+	const u32 rowCount = m_ui.savedAddressesList->model()->rowCount();
+	m_ui.savedAddressesList->edit(m_ui.savedAddressesList->model()->index(rowCount - 1, 0));
+}
+
+void CpuWidget::addAddressToSavedAddressesList(u32 address)
+{
+	qobject_cast<SavedAddressesModel*>(m_ui.savedAddressesList->model())->addRow();
+	const u32 rowCount = m_ui.savedAddressesList->model()->rowCount();
+	const QModelIndex addressIndex = m_ui.savedAddressesList->model()->index(rowCount - 1, 0);
+	m_ui.tabWidget->setCurrentWidget(m_ui.tab_savedaddresses);
+	m_ui.savedAddressesList->model()->setData(addressIndex, address, Qt::UserRole);
+	m_ui.savedAddressesList->edit(m_ui.savedAddressesList->model()->index(rowCount - 1, 1));
+}
+
+void CpuWidget::contextSearchResultGoToDisassembly()
+{
+	const QItemSelectionModel* selModel = m_ui.listSearchResults->selectionModel();
+	if (!selModel->hasSelection())
 		return;
 
-	SymbolGuardian& guardian = m_cpu.GetSymbolGuardian();
-	guardian.Read([&](const ccc::SymbolDatabase& database) -> void {
-		if (whenEmpty && m_ui.listFunctions->count())
-			return;
+	m_ui.disassemblyWidget->gotoAddress(m_ui.listSearchResults->selectedItems().first()->data(Qt::UserRole).toUInt());
+}
 
-		m_ui.listFunctions->clear();
+void CpuWidget::contextRemoveSearchResult()
+{
+	const QItemSelectionModel* selModel = m_ui.listSearchResults->selectionModel();
+	if (!selModel->hasSelection())
+		return;
 
-		QString filter = m_ui.txtFuncSearch->text();
-
-		for (const ccc::Function& function : database.functions)
-		{
-			ccc::Address address = function.address();
-			if (!address.valid())
-				continue;
-
-			QString name = QString::fromStdString(function.name());
-			if (!filter.isEmpty() && !name.contains(filter, Qt::CaseInsensitive))
-				continue;
-
-			QListWidgetItem* item = new QListWidgetItem();
-			item->setText(QString("%0 %1").arg(FilledQStringFromValue(address.value, 16)).arg(name));
-			item->setData(Qt::UserRole, address.value);
-			m_ui.listFunctions->addItem(item);
-		}
-	});
+	const int selectedResultIndex = m_ui.listSearchResults->row(m_ui.listSearchResults->selectedItems().first());
+	const auto* rowToRemove = m_ui.listSearchResults->takeItem(selectedResultIndex);
+	if (m_searchResults.size() > static_cast<size_t>(selectedResultIndex) && m_searchResults.at(selectedResultIndex) == rowToRemove->data(Qt::UserRole).toUInt())
+	{
+		m_searchResults.erase(m_searchResults.begin() + selectedResultIndex);
+	}
+	delete rowToRemove;
 }
 
 void CpuWidget::updateThreads()
@@ -765,6 +885,7 @@ void CpuWidget::onThreadListDoubleClick(const QModelIndex& index)
 	}
 }
 
+<<<<<<< HEAD
 void CpuWidget::onFuncListContextMenu(QPoint pos)
 {
 	if (!m_funclistContextMenu)
@@ -924,6 +1045,8 @@ void CpuWidget::onModuleTreeDoubleClick(QTreeWidgetItem* item)
 		m_ui.disassemblyWidget->gotoAddress(item->data(0, Qt::UserRole).toUInt());
 	}
 }
+=======
+>>>>>>> bb0cbcc88 (Debugger: Reimplement function list based on the new symbol tree)
 void CpuWidget::updateStackFrames()
 {
 	m_stackModel.refreshData();

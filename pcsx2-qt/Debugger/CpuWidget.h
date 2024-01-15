@@ -22,8 +22,6 @@
 
 using namespace MipsStackWalk;
 
-class GlobalVariablesWidget;
-
 class CpuWidget final : public QWidget
 {
 	Q_OBJECT
@@ -65,6 +63,7 @@ public slots:
 	void onStackListContextMenu(QPoint pos);
 	void onStackListDoubleClick(const QModelIndex& index);
 
+<<<<<<< HEAD
 	void updateFunctionList(bool whenEmpty = false);
 	void onFuncListContextMenu(QPoint pos);
 	void onFuncListDoubleClick(QListWidgetItem* item);
@@ -76,6 +75,26 @@ public slots:
 
 	void saveBreakpointsToDebuggerSettings();
 	void saveSavedAddressesToDebuggerSettings();
+=======
+	void reloadCPUWidgets()
+	{
+		if (!QtHost::IsOnUIThread())
+		{
+			QtHost::RunOnUIThread(CBreakPoints::GetUpdateHandler());
+			return;
+		}
+
+		updateBreakpoints();
+		updateThreads();
+		updateStackFrames();
+
+		m_ui.registerWidget->update();
+		m_ui.disassemblyWidget->update();
+		m_ui.memoryviewWidget->update();
+	};
+
+	void onSearchButtonClicked();
+>>>>>>> bb0cbcc88 (Debugger: Reimplement function list based on the new symbol tree)
 
 private:
 	std::vector<QTableWidget*> m_registerTableViews;
@@ -99,6 +118,4 @@ private:
 	bool m_moduleView = true;
 	u32 m_initialResultsLoadLimit = 20000;
 	u32 m_numResultsAddedPerLoad = 10000;
-	
-	GlobalVariablesWidget* m_globals_tab = nullptr;
 };

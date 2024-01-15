@@ -173,6 +173,7 @@
               </widget>
              </item>
             </layout>
+            <widget class="FunctionTreeWidget" name="functionTreeWidget" native="true"/>
            </item>
           </layout>
          </widget>
@@ -489,6 +490,16 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tabGlobalVariables">
+        <attribute name="title">
+         <string>Globals</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="GlobalVariableTreeWidget" name="globalVariableTreeWidget" native="true"/>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
     </layout>
@@ -518,6 +529,15 @@
    <class>MemorySearchWidget</class>
    <extends>QWidget</extends>
    <header>pcsx2-qt/Debugger/MemorySearchWidget.h</header>
+   <class>GlobalVariableTreeWidget</class>
+   <extends>QWidget</extends>
+   <header>pcsx2-qt/Debugger/SymbolTreeWidgets.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FunctionTreeWidget</class>
+   <extends>QWidget</extends>
+   <header>pcsx2-qt/Debugger/SymbolTreeWidgets.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
