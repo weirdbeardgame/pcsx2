@@ -17,7 +17,7 @@ SymbolGuardian R3000SymbolGuardian;
 
 static void error_callback(const ccc::Error& error, ccc::ErrorSeverity severity)
 {
-	Console.Error("%s", error.message.c_str());
+	Console.Error("Error while importing symbol table: %s", error.message.c_str());
 }
 
 SymbolGuardian::SymbolGuardian()
@@ -41,27 +41,13 @@ void SymbolGuardian::ReadWrite(std::function<void(ccc::SymbolDatabase&)> callbac
 	callback(m_database);
 }
 
-void SymbolGuardian::Clear()
-{
-	std::unique_lock lock(m_big_symbol_lock);
-	m_database.clear();
-	m_symbol_tables.clear();
-
-	ccc::Result<ccc::SymbolSource*> source = m_database.symbol_sources.create_symbol("User Defined", ccc::SymbolSourceHandle());
-	CCC_EXIT_IF_ERROR(source);
-	m_user_defined = (*source)->handle();
-}
-
-void SymbolGuardian::LoadSymbolTables(std::vector<u8> elf)
+void SymbolGuardian::LoadSymbolTables(std::vector<u8> elf, std::string file_name)
 {
 	std::unique_lock lock(m_big_symbol_lock);
 
 	// Delete any previously loaded symbols tables.
-	for (ccc::SymbolSourceRange sources : m_symbol_tables)
-	{
-		m_database.destroy_symbols_from_sources(sources);
-	}
-	m_symbol_tables.clear();
+	m_database.destroy_symbols_from_modules(m_main_elf);
+	m_main_elf = ccc::ModuleHandle();
 
 	ccc::Result<ccc::ElfFile> parsed_elf = ccc::parse_elf_file(std::move(elf));
 	if (!parsed_elf.success())
@@ -70,7 +56,7 @@ void SymbolGuardian::LoadSymbolTables(std::vector<u8> elf)
 		return;
 	}
 
-	std::unique_ptr<ccc::SymbolFile> symbol_file = std::make_unique<ccc::ElfSymbolFile>(std::move(*parsed_elf));
+	std::unique_ptr<ccc::SymbolFile> symbol_file = std::make_unique<ccc::ElfSymbolFile>(std::move(*parsed_elf), std::move(file_name));
 
 	ccc::Result<std::vector<std::unique_ptr<ccc::SymbolTable>>> symbol_tables = symbol_file->get_all_symbol_tables();
 	if (!symbol_tables.success())
@@ -85,15 +71,40 @@ void SymbolGuardian::LoadSymbolTables(std::vector<u8> elf)
 
 	u32 importer_flags = ccc::DEMANGLE_PARAMETERS | ccc::DEMANGLE_RETURN_TYPE;
 
-	ccc::Result<ccc::SymbolSourceRange> symbol_sources = ccc::import_symbol_tables(
-		m_database, *symbol_tables, importer_flags, demangler);
-	if (!symbol_sources.success())
+	ccc::Result<ccc::ModuleHandle> module_handle = ccc::import_symbol_tables(
+		m_database, symbol_file->name(), *symbol_tables, importer_flags, demangler);
+	if (!module_handle.success())
 	{
-		ccc::report_error(symbol_sources.error());
+		ccc::report_error(module_handle.error());
 		return;
 	}
 
-	m_symbol_tables.emplace_back(*symbol_sources);
+	m_main_elf = *module_handle;
+}
+
+void SymbolGuardian::Clear()
+{
+	std::unique_lock lock(m_big_symbol_lock);
+	
+	m_database.clear();
+	m_main_elf = ccc::ModuleHandle();
+
+	ccc::Result<ccc::SymbolSource*> source = m_database.symbol_sources.create_symbol("User Defined", ccc::SymbolSourceHandle());
+	CCC_EXIT_IF_ERROR(source);
+	m_user_defined = (*source)->handle();
+}
+
+void SymbolGuardian::ClearIrxModules()
+{
+	std::unique_lock lock(m_big_symbol_lock);
+	
+	std::vector<ccc::ModuleHandle> irx_modules;
+	for(const ccc::Module& module : m_database.modules)
+		if(module.is_irx)
+			irx_modules.emplace_back(module.handle());
+	
+	for(ccc::ModuleHandle module : irx_modules)
+		m_database.destroy_symbols_from_modules(module);
 }
 
 SymbolMap R5900SymbolMap;
@@ -111,7 +122,6 @@ void SymbolMap::Clear()
 	functions.clear();
 	labels.clear();
 	data.clear();
-	modules.clear();
 }
 
 
