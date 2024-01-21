@@ -590,6 +590,11 @@
         </item>
        </layout>
       </widget>
+      <widget class="LocalVariableTreeWidget" name="tabLocalVariables">
+       <attribute name="title">
+        <string>Locals</string>
+       </attribute>
+      </widget>
      </widget>
     </widget>
    </item>
@@ -625,6 +630,12 @@
   </customwidget>
   <customwidget>
    <class>FunctionTreeWidget</class>
+   <extends>QWidget</extends>
+   <header>pcsx2-qt/Debugger/SymbolTreeWidgets.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LocalVariableTreeWidget</class>
    <extends>QWidget</extends>
    <header>pcsx2-qt/Debugger/SymbolTreeWidgets.h</header>
    <container>1</container>
