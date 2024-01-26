@@ -91,7 +91,8 @@ public slots:
 		m_ui.registerWidget->update();
 		m_ui.disassemblyWidget->update();
 		m_ui.memoryviewWidget->update();
-	};
+		m_ui.tabLocalVariables->update();
+	}
 
 	void onSearchButtonClicked();
 >>>>>>> bb0cbcc88 (Debugger: Reimplement function list based on the new symbol tree)
