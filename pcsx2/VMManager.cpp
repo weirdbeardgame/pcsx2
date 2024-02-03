@@ -8,7 +8,7 @@
 #include "DEV9/DEV9.h"
 #include "DebugTools/DebugInterface.h"
 #include "DebugTools/MIPSAnalyst.h"
-#include "DebugTools/SymbolMap.h"
+#include "DebugTools/SymbolGuardian.h"
 #include "Elfheader.h"
 #include "FW.h"
 #include "GS.h"
