@@ -99,7 +99,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="FunctionTreeWidget" name="tabFunctions">
+       <widget class="QWidget" name="tabFunctions">
         <attribute name="title">
          <string>Functions</string>
         </attribute>
@@ -548,12 +548,12 @@
         </item>
        </layout>
       </widget>
-      <widget class="GlobalVariableTreeWidget" name="tabGlobalVariables">
+      <widget class="QWidget" name="tabGlobalVariables">
        <attribute name="title">
         <string>Globals</string>
        </attribute>
       </widget>
-      <widget class="LocalVariableTreeWidget" name="tabLocalVariables">
+      <widget class="QWidget" name="tabLocalVariables">
        <attribute name="title">
         <string>Locals</string>
        </attribute>
@@ -580,27 +580,6 @@
    <class>MemoryViewWidget</class>
    <extends>QWidget</extends>
    <header>pcsx2-qt/Debugger/MemoryViewWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MemorySearchWidget</class>
-   <extends>QWidget</extends>
-   <header>pcsx2-qt/Debugger/MemorySearchWidget.h</header>
-   <class>GlobalVariableTreeWidget</class>
-   <extends>QWidget</extends>
-   <header>pcsx2-qt/Debugger/SymbolTree/SymbolTreeWidgets.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>FunctionTreeWidget</class>
-   <extends>QWidget</extends>
-   <header>pcsx2-qt/Debugger/SymbolTree/SymbolTreeWidgets.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>LocalVariableTreeWidget</class>
-   <extends>QWidget</extends>
-   <header>pcsx2-qt/Debugger/SymbolTree/SymbolTreeWidgets.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

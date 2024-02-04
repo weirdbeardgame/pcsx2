@@ -11,6 +11,7 @@
 #include "Models/ThreadModel.h"
 #include "Models/StackModel.h"
 #include "Models/SavedAddressesModel.h"
+#include "Debugger/SymbolTree/SymbolTreeWidgets.h"
 
 #include "QtHost.h"
 #include <QtWidgets/QWidget>
@@ -63,19 +64,6 @@ public slots:
 	void onStackListContextMenu(QPoint pos);
 	void onStackListDoubleClick(const QModelIndex& index);
 
-<<<<<<< HEAD
-	void updateFunctionList(bool whenEmpty = false);
-	void onFuncListContextMenu(QPoint pos);
-	void onFuncListDoubleClick(QListWidgetItem* item);
-	bool getDemangleFunctions() const { return m_demangleFunctions; }
-	void onModuleTreeContextMenu(QPoint pos);
-	void onModuleTreeDoubleClick(QTreeWidgetItem* item);
-	void refreshDebugger();
-	void reloadCPUWidgets();
-
-	void saveBreakpointsToDebuggerSettings();
-	void saveSavedAddressesToDebuggerSettings();
-=======
 	void reloadCPUWidgets()
 	{
 		if (!QtHost::IsOnUIThread())
@@ -95,9 +83,10 @@ public slots:
 	}
 
 	void onSearchButtonClicked();
->>>>>>> bb0cbcc88 (Debugger: Reimplement function list based on the new symbol tree)
 
 private:
+	void setupSymbolTrees();
+
 	std::vector<QTableWidget*> m_registerTableViews;
 
 	QMenu* m_stacklistContextMenu = 0;
@@ -119,4 +108,8 @@ private:
 	bool m_moduleView = true;
 	u32 m_initialResultsLoadLimit = 20000;
 	u32 m_numResultsAddedPerLoad = 10000;
+
+	FunctionTreeWidget* m_function_tree = nullptr;
+	GlobalVariableTreeWidget* m_global_variable_tree = nullptr;
+	LocalVariableTreeWidget* m_local_variable_tree = nullptr;
 };
