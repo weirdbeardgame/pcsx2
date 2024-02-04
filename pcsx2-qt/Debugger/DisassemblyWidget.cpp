@@ -153,9 +153,9 @@ void DisassemblyWidget::contextFollowBranch()
 	if (line.type == DISTYPE_OPCODE || line.type == DISTYPE_MACRO)
 	{
 		if (line.info.isBranch)
-			gotoAddress(line.info.branchTarget);
+			gotoAddressAndSetFocus(line.info.branchTarget);
 		else if (line.info.hasRelevantAddress)
-			gotoAddress(line.info.releventAddress);
+			gotoAddressAndSetFocus(line.info.releventAddress);
 	}
 }
 
@@ -176,7 +176,7 @@ void DisassemblyWidget::contextGoToAddress()
 		return;
 	}
 
-	gotoAddress(targetAddress);
+	gotoAddressAndSetFocus(targetAddress);
 }
 
 void DisassemblyWidget::contextAddFunction()
@@ -657,7 +657,7 @@ void DisassemblyWidget::keyPressEvent(QKeyEvent* event)
 			contextFollowBranch();
 			break;
 		case Qt::Key_Left:
-			gotoAddress(m_cpu->getPC());
+			gotoAddressAndSetFocus(m_cpu->getPC());
 			break;
 		case Qt::Key_O:
 			m_showInstructionOpcode = !m_showInstructionOpcode;
@@ -864,6 +864,11 @@ QString DisassemblyWidget::FetchSelectionInfo(SelectionInfo selInfo)
 		}
 	}
 	return infoBlock;
+}
+
+void DisassemblyWidget::gotoAddressAndSetFocus(u32 address)
+{
+	gotoAddress(address, true);
 }
 
 void DisassemblyWidget::gotoAddress(u32 address, bool should_set_focus)
