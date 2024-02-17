@@ -102,10 +102,12 @@ public:
 
 	virtual bool parseSymbol(char* str, u64& symbolValue)
 	{
-		u32 value;
-		bool result = cpu->GetSymbolMap().GetLabelValue(str, value);
-		symbolValue = value;
-		return result;
+		SymbolInfo symbol = cpu->GetSymbolGuardian().SymbolWithName(std::string(str), SDA_TRY);
+		if (!symbol.address.valid())
+			return false;
+
+		symbolValue = symbol.address.value;
+		return true;
 	}
 
 	virtual u64 getReferenceValue(u64 referenceIndex)
@@ -739,11 +741,6 @@ u32 R5900DebugInterface::getCycles()
 	return cpuRegs.cycle;
 }
 
-SymbolMap& R5900DebugInterface::GetSymbolMap() const
-{
-	return R5900SymbolMap;
-}
-
 SymbolGuardian& R5900DebugInterface::GetSymbolGuardian() const
 {
 	return R5900SymbolGuardian;
@@ -1061,11 +1058,6 @@ bool R3000DebugInterface::isValidAddress(u32 addr)
 u32 R3000DebugInterface::getCycles()
 {
 	return psxRegs.cycle;
-}
-
-SymbolMap& R3000DebugInterface::GetSymbolMap() const
-{
-	return R3000SymbolMap;
 }
 
 SymbolGuardian& R3000DebugInterface::GetSymbolGuardian() const
