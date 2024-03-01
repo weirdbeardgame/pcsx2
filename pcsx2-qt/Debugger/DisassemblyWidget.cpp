@@ -15,6 +15,7 @@
 #include <QtGui/QClipboard>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMessageBox>
+#include "SymbolTree/NewSymbolDialogs.h"
 
 using namespace QtUtils;
 
@@ -181,65 +182,12 @@ void DisassemblyWidget::contextGoToAddress()
 
 void DisassemblyWidget::contextAddFunction()
 {
-	// Get current function
-	const u32 curAddress = m_selectedAddressStart;
-	FunctionInfo curFunc = m_cpu->GetSymbolGuardian().FunctionOverlappingAddress(m_selectedAddressStart, SDA_BLOCK);
-	u32 curFuncNewSize = UINT32_MAX;
-
-	QString newFuncName;
-	u32 newFuncAddress = 0;
-	u32 newFuncSize = 0;
-
-	if (curFunc.address.valid())
-	{
-		if (curFunc.address == curAddress) // There is already a function here
-		{
-			QMessageBox::warning(this, tr("Add Function Error"), tr("A function entry point already exists here. Consider renaming instead."));
-			return;
-		}
-		else
-		{
-			u32 newSize = curFunc.size - curFunc.address.value;
-
-			bool ok;
-			newFuncName = QInputDialog::getText(this, tr("Add Function"),
-				tr("Function will be (0x%1) instructions long.\nEnter function name").arg(curFunc.size - newSize, 0, 16), QLineEdit::Normal, "", &ok);
-			if (!ok)
-				return;
-
-			newFuncAddress = curAddress;
-			newFuncSize = curFunc.size - newSize;
-		}
-	}
-	else
-	{
-		bool ok;
-		newFuncName = QInputDialog::getText(this, "Add Function",
-			tr("Function will be (0x%1) instructions long.\nEnter function name").arg(m_selectedAddressEnd + 4 - m_selectedAddressStart, 0, 16), QLineEdit::Normal, "", &ok);
-		if (!ok)
-			return;
-
-		newFuncAddress = m_selectedAddressStart;
-		newFuncSize = m_selectedAddressEnd + 4 - m_selectedAddressStart;
-	}
-
-	m_cpu->GetSymbolGuardian().BlockingReadWrite([&](ccc::SymbolDatabase& database) {
-		if (curFuncNewSize != UINT32_MAX)
-		{
-			ccc::Function* currentFunction = database.functions.symbol_from_handle(curFunc.handle);
-			if (currentFunction)
-				currentFunction->set_size(curFuncNewSize);
-		}
-
-		ccc::Result<ccc::SymbolSourceHandle> source = database.get_symbol_source("User-defined");
-		if (!source.success())
-			return;
-		ccc::Result<ccc::Function*> function = database.functions.create_symbol(
-			newFuncName.toStdString(), newFuncAddress, *source, nullptr);
-		if (!function.success())
-			return;
-		(*function)->set_size(newFuncSize);
-	});
+	NewFunctionDialog* dialog = new NewFunctionDialog(*m_cpu, this);
+	dialog->setAddress(m_selectedAddressStart);
+	if (m_selectedAddressEnd != m_selectedAddressStart)
+		dialog->setCustomSize(m_selectedAddressEnd - m_selectedAddressStart + 4);
+	if (dialog->exec() == QDialog::Accepted)
+		update();
 }
 
 void DisassemblyWidget::contextCopyFunctionName()
@@ -757,7 +705,16 @@ inline QString DisassemblyWidget::DisassemblyStringFromAddress(u32 address, QFon
 
 	QString lineString("  %1  %2 %3  %4 %5");
 
-	if (addressSymbol.empty()) // The address wont have symbol text if it's the start of a function for example
+	if (function.is_no_return)
+	{
+		lineString = lineString.arg("NR");
+	}
+	else
+	{
+		lineString = lineString.arg("  ");
+	}
+
+	if (function.name.empty()) // The address wont have symbol text if it's the start of a function for example
 		lineString = lineString.arg(address, 8, 16, QChar('0')).toUpper();
 	else
 	{
