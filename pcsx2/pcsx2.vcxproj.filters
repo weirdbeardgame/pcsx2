@@ -1381,16 +1381,10 @@
     <ClCompile Include="SIO\Pad\Pad.cpp">
       <Filter>System\Ps2\Iop\SIO\PAD</Filter>
     </ClCompile>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
     <ClCompile Include="SPU2\ReverbResample.cpp" />
     <ClCompile Include="SIO\Pad\PadPopn.cpp">
       <Filter>System\Ps2\Iop\SIO\PAD</Filter>
     </ClCompile>
-<<<<<<< HEAD
     <ClCompile Include="USB\usb-eyetoy\cam-jpeg.cpp">
       <Filter>System\Ps2\USB\usb-eyetoy</Filter>
     </ClCompile>
@@ -1424,7 +1418,6 @@
     <ClCompile Include="arm64\RecStubs.cpp">
       <Filter>System\Ps2\EmotionEngine\EE\Dynarec\arm64</Filter>
     </ClCompile>
-=======
     <ClCompile Include="DebugTools\SymbolGuardian.cpp">
       <Filter>System\Ps2\Debug</Filter>
     </ClCompile>
@@ -1473,7 +1466,6 @@
     <ClCompile Include="DebugTools\ccc\util.cpp">
       <Filter>System\Ps2\Debug\ccc</Filter>
     </ClCompile>
->>>>>>> c1697c01b (Build: Add VS project files for the new debugging features)
 >>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
   </ItemGroup>
   <ItemGroup>
@@ -1702,13 +1694,10 @@
     <ClInclude Include="x86\microVU_Profiler.h">
       <Filter>System\Ps2\EmotionEngine\VU\Dynarec\microVU</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="DebugTools\SymbolMap.h">
       <Filter>System\Ps2\Debug</Filter>
-=======
     <ClInclude Include="AsyncFileReader.h">
       <Filter>System\ISO</Filter>
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
     </ClInclude>
     <ClInclude Include="DebugTools\DebugInterface.h">
       <Filter>System\Ps2\Debug</Filter>
@@ -2365,17 +2354,11 @@
     <ClInclude Include="SIO\Pad\Pad.h">
       <Filter>System\Ps2\Iop\SIO\PAD</Filter>
     </ClInclude>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
     <ClInclude Include="ImGui\ImGuiAnimated.h" />
     <ClInclude Include="SIO\Pad\PadPopn.h">
       <Filter>System\Ps2\Iop\SIO\PAD</Filter>
     </ClInclude>
     <ClInclude Include="SupportURLs.h" />
-<<<<<<< HEAD
     <ClInclude Include="USB\usb-eyetoy\cam-jpeg.h">
       <Filter>System\Ps2\USB\usb-eyetoy</Filter>
     </ClInclude>
@@ -2415,7 +2398,6 @@
     <ClInclude Include="arm64\AsmHelpers.h">
       <Filter>Tools\arm64</Filter>
     </ClInclude>
-=======
     <ClInclude Include="DebugTools\SymbolGuardian.h">
       <Filter>System\Ps2\Debug</Filter>
     </ClInclude>
@@ -2464,7 +2446,6 @@
     <ClInclude Include="DebugTools\ccc\util.h">
       <Filter>System\Ps2\Debug\ccc</Filter>
     </ClInclude>
->>>>>>> c1697c01b (Build: Add VS project files for the new debugging features)
 >>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
   </ItemGroup>
   <ItemGroup>

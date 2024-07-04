@@ -19,19 +19,20 @@ bool iopIsDelaySlot = false;
 static bool branch2 = 0;
 static u32 branchPC;
 
-static void doBranch(s32 tar);	// forward declared prototype
+static void doBranch(s32 tar); // forward declared prototype
 
 /*********************************************************
 * Register branch logic                                  *
 * Format:  OP rs, offset                                 *
 *********************************************************/
 
-void psxBGEZ()         // Branch if Rs >= 0
+void psxBGEZ() // Branch if Rs >= 0
 {
-	if (_i32(_rRs_) >= 0) doBranch(_BranchTarget_);
+	if (_i32(_rRs_) >= 0)
+		doBranch(_BranchTarget_);
 }
 
-void psxBGEZAL()   // Branch if Rs >= 0 and link
+void psxBGEZAL() // Branch if Rs >= 0 and link
 {
 	_SetLink(31);
 	if (_i32(_rRs_) >= 0)
@@ -40,27 +41,30 @@ void psxBGEZAL()   // Branch if Rs >= 0 and link
 	}
 }
 
-void psxBGTZ()          // Branch if Rs >  0
+void psxBGTZ() // Branch if Rs >  0
 {
-	if (_i32(_rRs_) > 0) doBranch(_BranchTarget_);
+	if (_i32(_rRs_) > 0)
+		doBranch(_BranchTarget_);
 }
 
-void psxBLEZ()         // Branch if Rs <= 0
+void psxBLEZ() // Branch if Rs <= 0
 {
-	if (_i32(_rRs_) <= 0) doBranch(_BranchTarget_);
+	if (_i32(_rRs_) <= 0)
+		doBranch(_BranchTarget_);
 }
-void psxBLTZ()          // Branch if Rs <  0
+void psxBLTZ() // Branch if Rs <  0
 {
-	if (_i32(_rRs_) < 0) doBranch(_BranchTarget_);
+	if (_i32(_rRs_) < 0)
+		doBranch(_BranchTarget_);
 }
 
-void psxBLTZAL()    // Branch if Rs <  0 and link
+void psxBLTZAL() // Branch if Rs <  0 and link
 {
 	_SetLink(31);
 	if (_i32(_rRs_) < 0)
-		{
-			doBranch(_BranchTarget_);
-		}
+	{
+		doBranch(_BranchTarget_);
+	}
 }
 
 /*********************************************************
@@ -68,14 +72,16 @@ void psxBLTZAL()    // Branch if Rs <  0 and link
 * Format:  OP rs, rt, offset                             *
 *********************************************************/
 
-void psxBEQ()   // Branch if Rs == Rt
+void psxBEQ() // Branch if Rs == Rt
 {
-	if (_i32(_rRs_) == _i32(_rRt_)) doBranch(_BranchTarget_);
+	if (_i32(_rRs_) == _i32(_rRt_))
+		doBranch(_BranchTarget_);
 }
 
-void psxBNE()   // Branch if Rs != Rt
+void psxBNE() // Branch if Rs != Rt
 {
-	if (_i32(_rRs_) != _i32(_rRt_)) doBranch(_BranchTarget_);
+	if (_i32(_rRs_) != _i32(_rRt_))
+		doBranch(_BranchTarget_);
 }
 
 /*********************************************************
@@ -174,18 +180,18 @@ void psxCheckMemcheck()
 	bool store = (opcode.flags & IS_STORE) != 0;
 	switch (opcode.flags & MEMTYPE_MASK)
 	{
-	case MEMTYPE_BYTE:
-		psxMemcheck(op, 8, store);
-		break;
-	case MEMTYPE_HALF:
-		psxMemcheck(op, 16, store);
-		break;
-	case MEMTYPE_WORD:
-		psxMemcheck(op, 32, store);
-		break;
-	case MEMTYPE_DWORD:
-		psxMemcheck(op, 64, store);
-		break;
+		case MEMTYPE_BYTE:
+			psxMemcheck(op, 8, store);
+			break;
+		case MEMTYPE_HALF:
+			psxMemcheck(op, 16, store);
+			break;
+		case MEMTYPE_WORD:
+			psxMemcheck(op, 32, store);
+			break;
+		case MEMTYPE_DWORD:
+			psxMemcheck(op, 64, store);
+			break;
 	}
 }
 
@@ -205,8 +211,10 @@ static __fi void execI()
 #endif
 
 	// Inject IRX hack
-	if (psxRegs.pc == 0x1630 && EmuConfig.CurrentIRX.length() > 3) {
-		if (iopMemRead32(0x20018) == 0x1F) {
+	if (psxRegs.pc == 0x1630 && EmuConfig.CurrentIRX.length() > 3)
+	{
+		if (iopMemRead32(0x20018) == 0x1F)
+		{
 			// FIXME do I need to increase the module count (0x1F -> 0x20)
 			iopMemWrite32(0x20094, 0xbffc0000);
 		}
@@ -214,52 +222,52 @@ static __fi void execI()
 
 	psxRegs.code = iopMemRead32(psxRegs.pc);
 
-		PSXCPU_LOG("%s", disR3000AF(psxRegs.code, psxRegs.pc));
+	PSXCPU_LOG("%s", disR3000AF(psxRegs.code, psxRegs.pc));
 
-	psxRegs.pc+= 4;
+	psxRegs.pc += 4;
 	psxRegs.cycle++;
 
 	psxBSC[psxRegs.code >> 26]();
 }
 
-static void doBranch(s32 tar) {
+static void doBranch(s32 tar)
+{
 	if (tar == 0x0)
 		DevCon.Warning("[R3000 Interpreter] Warning: Branch to 0x0!");
 
 	// When upgrading the IOP, there are two resets, the second of which is a 'fake' reset
 	// This second 'reset' involves UDNL calling SYSMEM and LOADCORE directly, resetting LOADCORE's modules
 	// This detects when SYSMEM is called and clears the modules then
-	if(tar == 0x890)
+	if (tar == 0x890)
 	{
 		DevCon.WriteLn(Color_Gray, "[R3000 Debugger] Branch to 0x890 (SYSMEM). Clearing modules.");
-<<<<<<< HEAD
-		R3000SymbolMap.ClearModules();
-=======
 		R3000SymbolGuardian.ClearIrxModules();
->>>>>>> 7d21f128e (Debugger: Port IOP module support to the new symbol database)
 	}
 
 	branch2 = iopIsDelaySlot = true;
 	branchPC = tar;
 	execI();
-	PSXCPU_LOG( "\n" );
+	PSXCPU_LOG("\n");
 	iopIsDelaySlot = false;
 	psxRegs.pc = branchPC;
 
 	iopEventTest();
 }
 
-static void intReserve() {
+static void intReserve()
+{
 }
 
-static void intAlloc() {
+static void intAlloc()
+{
 }
 
-static void intReset() {
+static void intReset()
+{
 	intAlloc();
 }
 
-static s32 intExecuteBlock( s32 eeCycles )
+static s32 intExecuteBlock(s32 eeCycles)
 {
 	psxRegs.iopBreak = 0;
 	psxRegs.iopCycleEE = eeCycles;
@@ -275,7 +283,7 @@ static s32 intExecuteBlock( s32 eeCycles )
 		while (!branch2)
 			execI();
 
-		
+
 		if ((psxHu32(HW_ICFG) & (1 << 3)))
 		{
 			// F = gcd(PS2CLK, PSXCLK) = 230400
@@ -288,7 +296,7 @@ static s32 intExecuteBlock( s32 eeCycles )
 			psxRegs.iopCycleEECarry = t % cdenom;
 		}
 		else
-		{ 
+		{
 			//default ps2 mode value
 			psxRegs.iopCycleEE -= (psxRegs.cycle - lastIOPCycle) * 8;
 		}
@@ -297,10 +305,12 @@ static s32 intExecuteBlock( s32 eeCycles )
 	return psxRegs.iopBreak + psxRegs.iopCycleEE;
 }
 
-static void intClear(u32 Addr, u32 Size) {
+static void intClear(u32 Addr, u32 Size)
+{
 }
 
-static void intShutdown() {
+static void intShutdown()
+{
 }
 
 R3000Acpu psxInt = {
@@ -308,5 +318,4 @@ R3000Acpu psxInt = {
 	intReset,
 	intExecuteBlock,
 	intClear,
-	intShutdown
-};
+	intShutdown};

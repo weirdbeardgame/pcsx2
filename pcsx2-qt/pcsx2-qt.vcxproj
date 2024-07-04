@@ -273,8 +273,6 @@
     <ClCompile Include="$(IntDir)Debugger\Models\moc_ThreadModel.cpp" />
     <ClCompile Include="$(IntDir)Debugger\Models\moc_StackModel.cpp" />
     <ClCompile Include="$(IntDir)Debugger\Models\moc_SavedAddressesModel.cpp" />
-<<<<<<< HEAD
-=======
     <ClCompile Include="$(IntDir)Debugger\SymbolTree\moc_NewSymbolDialogs.cpp" />
     <ClCompile Include="$(IntDir)Debugger\SymbolTree\moc_SymbolTreeDelegates.cpp" />
     <ClCompile Include="$(IntDir)Debugger\SymbolTree\moc_SymbolTreeLocation.cpp" />
@@ -282,7 +280,6 @@
     <ClCompile Include="$(IntDir)Debugger\SymbolTree\moc_SymbolTreeNode.cpp" />
     <ClCompile Include="$(IntDir)Debugger\SymbolTree\moc_SymbolTreeWidgets.cpp" />
     <ClCompile Include="$(IntDir)Debugger\SymbolTree\moc_TypeString.cpp" />
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
     <ClCompile Include="$(IntDir)GameList\moc_GameListModel.cpp" />
     <ClCompile Include="$(IntDir)GameList\moc_GameListRefreshThread.cpp" />
     <ClCompile Include="$(IntDir)GameList\moc_GameListWidget.cpp" />
@@ -455,17 +452,8 @@
     <QtUi Include="Settings\ControllerMacroWidget.ui">
       <FileType>Document</FileType>
     </QtUi>
-<<<<<<< HEAD
-    <QtUi Include="Settings\AudioExpansionSettingsDialog.ui">
-      <FileType>Document</FileType>
-    </QtUi>
-    <QtUi Include="Settings\AudioStretchSettingsDialog.ui">
-      <FileType>Document</FileType>
-    </QtUi>
-=======
     <None Include="Debugger\SymbolTree\NewSymbolDialog.ui" />
     <None Include="Debugger\SymbolTree\SymbolTreeWidget.ui" />
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
     <None Include="Settings\ControllerBindingWidget_Popn.ui" />
     <None Include="Settings\ControllerMappingSettingsDialog.ui" />
     <None Include="Settings\FolderSettingsWidget.ui" />

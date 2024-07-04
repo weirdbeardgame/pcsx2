@@ -358,9 +358,7 @@
     <ClCompile Include="Debugger\DebuggerSettingsManager.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
-<<<<<<< HEAD
     <ClCompile Include="VCRuntimeChecker.cpp" />
-=======
     <ClCompile Include="Debugger\SymbolTree\NewSymbolDialogs.cpp">
       <Filter>Debugger\SymbolTree</Filter>
     </ClCompile>
@@ -382,7 +380,6 @@
     <ClCompile Include="Debugger\SymbolTree\TypeString.cpp">
       <Filter>Debugger\SymbolTree</Filter>
     </ClCompile>
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\pcsx2\windows\PCSX2.manifest">
@@ -405,8 +402,6 @@
     <ClInclude Include="Debugger\DebuggerSettingsManager.h">
       <Filter>Debugger</Filter>
     </ClInclude>
-<<<<<<< HEAD
-=======
     <ClInclude Include="Debugger\SymbolTree\NewSymbolDialogs.h">
       <Filter>Debugger\SymbolTree</Filter>
     </ClInclude>
@@ -428,7 +423,6 @@
     <ClInclude Include="Debugger\SymbolTree\TypeString.h">
       <Filter>Debugger\SymbolTree</Filter>
     </ClInclude>
->>>>>>> dc030adb1 (Build: Add VS project files for the new debugging features)
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
