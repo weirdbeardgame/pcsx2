@@ -121,7 +121,11 @@ void QtHost::InstallTranslator(QWidget* dialog_parent)
 #ifdef __APPLE__
 	const QString base_dir = QStringLiteral("%1/../Resources/translations").arg(qApp->applicationDirPath());
 #else
-	const QString base_dir = QStringLiteral("%1/translations").arg(qApp->applicationDirPath());
+    #ifdef PCSX2_APP_DATADIR
+        const QString base_dir = QStringLiteral("%1/../Resources/translations").arg(qApp->applicationDirPath());
+    #else
+        const QString base_dir = QStringLiteral("%1/translations").arg(qApp->applicationDirPath());
+    #endif
 #endif
 
 	// Qt base uses underscores instead of hyphens.
