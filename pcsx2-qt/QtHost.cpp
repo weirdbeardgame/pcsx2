@@ -618,11 +618,11 @@ void EmuThread::toggleSoftwareRendering()
 	MTGS::ToggleSoftwareRendering();
 }
 
-void EmuThread::changeDisc(CDVD_SourceType source, const QString& path)
+void EmuThread::changeDisc(cdvdCommon::CDVD_SourceType source, const QString& path)
 {
 	if (!isOnEmuThread())
 	{
-		QMetaObject::invokeMethod(this, "changeDisc", Qt::QueuedConnection, Q_ARG(CDVD_SourceType, source), Q_ARG(const QString&, path));
+		QMetaObject::invokeMethod(this, "changeDisc", Qt::QueuedConnection, Q_ARG(cdvdCommon::CDVD_SourceType, source), Q_ARG(const QString&, path));
 		return;
 	}
 
@@ -1062,12 +1062,12 @@ void EmuThread::updatePerformanceMetrics(bool force)
 				Q_ARG(const QString&, tr("VPS: %1 ").arg(vfps, 0, 'f', 0)));
 			m_last_video_fps = vfps;
 
-		if (speed != m_last_speed || force)
-		{
-			QMetaObject::invokeMethod(g_main_window->getStatusSpeedWidget(), "setText", Qt::QueuedConnection,
-				Q_ARG(const QString&, tr("Speed: %1% ").arg(speed, 0, 'f', 0)));
-			m_last_speed = speed;
-		}
+			if (speed != m_last_speed || force)
+			{
+				QMetaObject::invokeMethod(g_main_window->getStatusSpeedWidget(), "setText", Qt::QueuedConnection,
+					Q_ARG(const QString&, tr("Speed: %1% ").arg(speed, 0, 'f', 0)));
+				m_last_speed = speed;
+			}
 		}
 	}
 }
@@ -1710,57 +1710,58 @@ void Host::SetMouseMode(bool relative_mode, bool hide_cursor)
 	emit g_emu_thread->onMouseModeRequested(relative_mode, hide_cursor);
 }
 
-namespace {
-class QtHostProgressCallback final : public BaseProgressCallback
+namespace
 {
-public:
-	QtHostProgressCallback();
-	~QtHostProgressCallback() override;
-
-	__fi const std::string& GetName() const { return m_name; }
-
-	void PushState() override;
-	void PopState() override;
-
-	bool IsCancelled() const override;
-
-	void SetCancellable(bool cancellable) override;
-	void SetTitle(const char* title) override;
-	void SetStatusText(const char* text) override;
-	void SetProgressRange(u32 range) override;
-	void SetProgressValue(u32 value) override;
-
-	void DisplayError(const char* message) override;
-	void DisplayWarning(const char* message) override;
-	void DisplayInformation(const char* message) override;
-	void DisplayDebugMessage(const char* message) override;
-
-	void ModalError(const char* message) override;
-	bool ModalConfirmation(const char* message) override;
-	void ModalInformation(const char* message) override;
-
-	void SetCancelled();
-
-private:
-	struct SharedData
+	class QtHostProgressCallback final : public BaseProgressCallback
 	{
-		QProgressDialog* dialog = nullptr;
-		QString init_title;
-		QString init_status_text;
-		std::atomic_bool cancelled{false};
-		bool cancellable = true;
-		bool was_fullscreen = false;
+	public:
+		QtHostProgressCallback();
+		~QtHostProgressCallback() override;
+
+		__fi const std::string& GetName() const { return m_name; }
+
+		void PushState() override;
+		void PopState() override;
+
+		bool IsCancelled() const override;
+
+		void SetCancellable(bool cancellable) override;
+		void SetTitle(const char* title) override;
+		void SetStatusText(const char* text) override;
+		void SetProgressRange(u32 range) override;
+		void SetProgressValue(u32 value) override;
+
+		void DisplayError(const char* message) override;
+		void DisplayWarning(const char* message) override;
+		void DisplayInformation(const char* message) override;
+		void DisplayDebugMessage(const char* message) override;
+
+		void ModalError(const char* message) override;
+		bool ModalConfirmation(const char* message) override;
+		void ModalInformation(const char* message) override;
+
+		void SetCancelled();
+
+	private:
+		struct SharedData
+		{
+			QProgressDialog* dialog = nullptr;
+			QString init_title;
+			QString init_status_text;
+			std::atomic_bool cancelled{false};
+			bool cancellable = true;
+			bool was_fullscreen = false;
+		};
+
+		void EnsureHasData();
+		static void EnsureDialogVisible(const std::shared_ptr<SharedData>& data);
+		void Redraw(bool force);
+
+		std::string m_name;
+		std::shared_ptr<SharedData> m_data;
+		int m_last_progress_percent = -1;
 	};
-
-	void EnsureHasData();
-	static void EnsureDialogVisible(const std::shared_ptr<SharedData>& data);
-	void Redraw(bool force);
-
-	std::string m_name;
-	std::shared_ptr<SharedData> m_data;
-	int m_last_progress_percent = -1;
-};
-}
+} // namespace
 
 QtHostProgressCallback::QtHostProgressCallback()
 	: BaseProgressCallback()
@@ -1815,7 +1816,7 @@ void QtHostProgressCallback::SetTitle(const char* title)
 void QtHostProgressCallback::SetStatusText(const char* text)
 {
 	BaseProgressCallback::SetStatusText(text);
-	
+
 	EnsureHasData();
 	QtHost::RunOnUIThread([data = m_data, text = QString::fromUtf8(text)]() {
 		if (data->dialog)
@@ -2141,7 +2142,7 @@ bool QtHost::ParseCommandLineOptions(const QStringList& args, std::shared_ptr<VM
 			}
 			else if (CHECK_ARG_PARAM(QStringLiteral("-disc")))
 			{
-				AutoBoot(autoboot)->source_type = CDVD_SourceType::Disc;
+				AutoBoot(autoboot)->source_type = cdvdCommon::CDVD_SourceType::Disc;
 				AutoBoot(autoboot)->filename = (++it)->toStdString();
 				continue;
 			}
@@ -2152,7 +2153,7 @@ bool QtHost::ParseCommandLineOptions(const QStringList& args, std::shared_ptr<VM
 			}
 			else if (CHECK_ARG(QStringLiteral("-bios")))
 			{
-				AutoBoot(autoboot)->source_type = CDVD_SourceType::NoDisc;
+				AutoBoot(autoboot)->source_type = cdvdCommon::CDVD_SourceType::NoDisc;
 				continue;
 			}
 			else if (CHECK_ARG(QStringLiteral("-fullscreen")))
@@ -2277,7 +2278,7 @@ void QtHost::RegisterTypes()
 	qRegisterMetaType<std::shared_ptr<VMBootParameters>>();
 	qRegisterMetaType<GSRendererType>();
 	qRegisterMetaType<InputBindingKey>();
-	qRegisterMetaType<CDVD_SourceType>();
+	qRegisterMetaType<cdvdCommon::CDVD_SourceType>();
 	qRegisterMetaType<const GameList::Entry*>();
 	qRegisterMetaType<Achievements::LoginRequestReason>();
 }

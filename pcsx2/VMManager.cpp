@@ -76,6 +76,8 @@
 #include "common/Darwin/DarwinMisc.h"
 #endif
 
+using namespace cdvdCommon;
+
 namespace VMManager
 {
 	static void SetDefaultLoggingSettings(SettingsInterface& si);
@@ -997,7 +999,7 @@ void VMManager::UpdateDiscDetails(bool booting)
 			s_disc_version = {};
 			serial_is_valid = !s_disc_serial.empty();
 		}
-		else if (CDVDsys_GetSourceType() != CDVD_SourceType::NoDisc)
+		else if (CDVDsys_GetSourceType() != cdvdCommon::CDVD_SourceType::NoDisc)
 		{
 			cdvdGetDiscInfo(&s_disc_serial, &s_disc_elf, &s_disc_version, &s_disc_crc, nullptr);
 			serial_is_valid = !s_disc_serial.empty();
@@ -1158,8 +1160,8 @@ void VMManager::UpdateELFInfo(std::string elf_path)
 
 	// Search for a .sym file to load symbols from.
 	std::string nocash_path;
-	CDVD_SourceType source_type = CDVDsys_GetSourceType();
-	if (source_type == CDVD_SourceType::Iso)
+	cdvdCommon::CDVD_SourceType source_type = CDVDsys_GetSourceType();
+	if (source_type == cdvdCommon::CDVD_SourceType::Iso)
 	{
 		std::string iso_file_path = CDVDsys_GetFile(source_type);
 
@@ -1208,7 +1210,7 @@ bool VMManager::AutoDetectSource(const std::string& filename)
 
 		if (IsGSDumpFileName(filename))
 		{
-			CDVDsys_ChangeSource(CDVD_SourceType::NoDisc);
+			CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::NoDisc);
 			return GSDumpReplayer::Initialize(filename.c_str());
 		}
 		else if (IsElfFileName(filename))
@@ -1218,12 +1220,12 @@ bool VMManager::AutoDetectSource(const std::string& filename)
 			std::string disc_path = GetDiscOverrideFromGameSettings(filename);
 			if (!disc_path.empty())
 			{
-				CDVDsys_SetFile(CDVD_SourceType::Iso, std::move(disc_path));
-				CDVDsys_ChangeSource(CDVD_SourceType::Iso);
+				CDVDsys_SetFile(cdvdCommon::CDVD_SourceType::Iso, std::move(disc_path));
+				CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::Iso);
 			}
 			else
 			{
-				CDVDsys_ChangeSource(CDVD_SourceType::NoDisc);
+				CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::NoDisc);
 			}
 
 			s_elf_override = filename;
@@ -1232,15 +1234,15 @@ bool VMManager::AutoDetectSource(const std::string& filename)
 		else
 		{
 			// TODO: Maybe we should check if it's a valid iso here...
-			CDVDsys_SetFile(CDVD_SourceType::Iso, filename);
-			CDVDsys_ChangeSource(CDVD_SourceType::Iso);
+			CDVDsys_SetFile(cdvdCommon::CDVD_SourceType::Iso, filename);
+			CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::Iso);
 			return true;
 		}
 	}
 	else
 	{
 		// make sure we're not fast booting when we have no filename
-		CDVDsys_ChangeSource(CDVD_SourceType::NoDisc);
+		CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::NoDisc);
 		return true;
 	}
 }
@@ -1326,7 +1328,7 @@ bool VMManager::Initialize(VMBootParameters boot_params)
 	// resolve source type
 	if (boot_params.source_type.has_value())
 	{
-		if (boot_params.source_type.value() == CDVD_SourceType::Iso &&
+		if (boot_params.source_type.value() == cdvdCommon::CDVD_SourceType::Iso &&
 			!FileSystem::FileExists(boot_params.filename.c_str()))
 		{
 			Host::ReportErrorAsync(
@@ -1388,7 +1390,7 @@ bool VMManager::Initialize(VMBootParameters boot_params)
 	// ELFs must be fast booted, and GS dumps are never fast booted.
 	s_fast_boot_requested =
 		(boot_params.fast_boot.value_or(static_cast<bool>(EmuConfig.EnableFastBoot)) || !s_elf_override.empty()) &&
-		(CDVDsys_GetSourceType() != CDVD_SourceType::NoDisc || !s_elf_override.empty()) &&
+		(CDVDsys_GetSourceType() != cdvdCommon::CDVD_SourceType::NoDisc || !s_elf_override.empty()) &&
 		!GSDumpReplayer::IsReplayingDump();
 
 	if (!s_elf_override.empty())
@@ -1401,7 +1403,7 @@ bool VMManager::Initialize(VMBootParameters boot_params)
 
 		Hle_SetHostRoot(s_elf_override.c_str());
 	}
-	else if (CDVDsys_GetSourceType() == CDVD_SourceType::Iso)
+	else if (CDVDsys_GetSourceType() == cdvdCommon::CDVD_SourceType::Iso)
 	{
 		Hle_SetHostRoot(CDVDsys_GetFile(CDVDsys_GetSourceType()).c_str());
 	}
@@ -1430,9 +1432,9 @@ bool VMManager::Initialize(VMBootParameters boot_params)
 
 				Achievements::ConfirmHardcoreModeDisableAsync(trigger,
 					[boot_params = std::move(boot_params)](bool approved) mutable {
-					if (approved && Initialize(std::move(boot_params)))
-						SetState(VMState::Running);
-				});
+						if (approved && Initialize(std::move(boot_params)))
+							SetState(VMState::Running);
+					});
 
 				return false;
 			}
@@ -2232,9 +2234,9 @@ void VMManager::FrameAdvance(u32 num_frames /*= 1*/)
 	SetState(VMState::Running);
 }
 
-bool VMManager::ChangeDisc(CDVD_SourceType source, std::string path)
+bool VMManager::ChangeDisc(cdvdCommon::CDVD_SourceType source, std::string path)
 {
-	const CDVD_SourceType old_type = CDVDsys_GetSourceType();
+	const cdvdCommon::CDVD_SourceType old_type = CDVDsys_GetSourceType();
 	const std::string old_path(CDVDsys_GetFile(old_type));
 
 	CDVDsys_ChangeSource(source);
@@ -2245,7 +2247,7 @@ bool VMManager::ChangeDisc(CDVD_SourceType source, std::string path)
 	const bool result = DoCDVDopen(&error);
 	if (result)
 	{
-		if (source == CDVD_SourceType::NoDisc)
+		if (source == cdvdCommon::CDVD_SourceType::NoDisc)
 		{
 			Host::AddIconOSDMessage("ChangeDisc", ICON_FA_COMPACT_DISC, TRANSLATE_SV("VMManager", "Disc removed."),
 				Host::OSD_INFO_DURATION);
@@ -2274,7 +2276,7 @@ bool VMManager::ChangeDisc(CDVD_SourceType source, std::string path)
 				fmt::format(TRANSLATE_FS("VMManager", "Failed to switch back to old disc image. Removing disc.\nError was: {}"),
 					error.GetDescription()),
 				Host::OSD_CRITICAL_ERROR_DURATION);
-			CDVDsys_ChangeSource(CDVD_SourceType::NoDisc);
+			CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::NoDisc);
 			DoCDVDopen(nullptr);
 		}
 	}
@@ -3115,7 +3117,7 @@ void VMManager::WarnAboutUnsafeSettings()
 		append(ICON_FA_TACHOMETER_ALT,
 			TRANSLATE_SV("VMManager", "Cycle rate/skip is not at default, this may crash or make games run too slow."));
 	}
-	
+
 	const bool is_sw_renderer = EmuConfig.GS.Renderer == GSRendererType::SW;
 	if (!is_sw_renderer)
 	{
@@ -3632,7 +3634,7 @@ void VMManager::UpdateDiscordPresence(bool update_session_time)
 	rp.largeImageKey = "4k-pcsx2";
 	rp.largeImageText = "PCSX2 PS2 Emulator";
 	rp.startTimestamp = s_discord_presence_time_epoch;
-	rp.details = s_title.empty() ?  TRANSLATE("VMManager","No Game Running") : s_title.c_str();
+	rp.details = s_title.empty() ? TRANSLATE("VMManager", "No Game Running") : s_title.c_str();
 
 	std::string state_string;
 

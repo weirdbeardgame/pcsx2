@@ -8,13 +8,12 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include "CDVD/CDVDcommon.h"
 #include <vector>
 
 #include "common/Pcsx2Defs.h"
 
 #include "Config.h"
-
-enum class CDVD_SourceType : uint8_t;
 
 enum class VMState
 {
@@ -32,7 +31,7 @@ struct VMBootParameters
 	std::string elf_override;
 	std::string save_state;
 	std::optional<s32> state_index;
-	std::optional<CDVD_SourceType> source_type;
+	std::optional<cdvdCommon::CDVD_SourceType> source_type;
 
 	std::optional<bool> fast_boot;
 	std::optional<bool> fullscreen;
@@ -173,7 +172,7 @@ namespace VMManager
 
 	/// Changes the disc in the virtual CD/DVD drive. Passing an empty will remove any current disc.
 	/// Returns false if the new disc can't be opened.
-	bool ChangeDisc(CDVD_SourceType source, std::string path);
+	bool ChangeDisc(cdvdCommon::CDVD_SourceType source, std::string path);
 
 	/// Changes the ELF to boot ("ELF override"). The VM will be reset.
 	bool SetELFOverride(std::string path);

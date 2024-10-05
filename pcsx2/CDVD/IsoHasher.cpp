@@ -13,6 +13,8 @@
 
 #include <algorithm>
 
+using namespace cdvdCommon;
+
 IsoHasher::IsoHasher() = default;
 
 IsoHasher::~IsoHasher()
@@ -39,8 +41,8 @@ bool IsoHasher::Open(std::string iso_path, Error* error)
 {
 	Close();
 
-	CDVDsys_SetFile(CDVD_SourceType::Iso, std::move(iso_path));
-	CDVDsys_ChangeSource(CDVD_SourceType::Iso);
+	CDVDsys_SetFile(cdvdCommon::CDVD_SourceType::Iso, std::move(iso_path));
+	CDVDsys_ChangeSource(cdvdCommon::CDVD_SourceType::Iso);
 
 	m_is_open = DoCDVDopen(error);
 	if (!m_is_open)

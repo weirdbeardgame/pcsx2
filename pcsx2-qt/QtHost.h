@@ -31,8 +31,6 @@ class SettingsInterface;
 class DisplayWidget;
 struct VMBootParameters;
 
-enum class CDVD_SourceType : uint8_t;
-
 namespace Achievements
 {
 	enum class LoginRequestReason;
@@ -42,7 +40,7 @@ Q_DECLARE_METATYPE(std::shared_ptr<VMBootParameters>);
 Q_DECLARE_METATYPE(std::optional<bool>);
 Q_DECLARE_METATYPE(GSRendererType);
 Q_DECLARE_METATYPE(InputBindingKey);
-Q_DECLARE_METATYPE(CDVD_SourceType);
+Q_DECLARE_METATYPE(cdvdCommon::CDVD_SourceType);
 Q_DECLARE_METATYPE(Achievements::LoginRequestReason);
 
 class EmuThread : public QThread
@@ -97,7 +95,7 @@ public Q_SLOTS:
 	void reloadGameSettings();
 	void updateEmuFolders();
 	void toggleSoftwareRendering();
-	void changeDisc(CDVD_SourceType source, const QString& path);
+	void changeDisc(cdvdCommon::CDVD_SourceType source, const QString& path);
 	void setELFOverride(const QString& path);
 	void changeGSDump(const QString& path);
 	void reloadPatches();
@@ -114,7 +112,7 @@ public Q_SLOTS:
 	void endCapture();
 	void setAudioOutputVolume(int volume, int fast_forward_volume);
 	void setAudioOutputMuted(bool muted);
-	
+
 Q_SIGNALS:
 	bool messageConfirmed(const QString& title, const QString& message);
 	void statusMessage(const QString& message);

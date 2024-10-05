@@ -174,7 +174,7 @@ static void ReadTrack()
 	CDVD_LOG("KEY *** %x:%x:%x", cdr.Prev[0], cdr.Prev[1], cdr.Prev[2]);
 	if (EmuConfig.CdvdVerboseReads)
 		DevCon.WriteLn("CD Read Sector %x", msf_to_lsn(cdr.SetSector));
-	cdr.RErr = DoCDVDreadTrack(msf_to_lsn(cdr.SetSector), CDVD_MODE_2340);
+	cdr.RErr = cdvdCommon::DoCDVDreadTrack(msf_to_lsn(cdr.SetSector), CDVD_MODE_2340);
 }
 
 static void AddIrqQueue(u8 irq, u32 ecycle)
@@ -192,7 +192,7 @@ static void AddIrqQueue(u8 irq, u32 ecycle)
 
 void cdrInterrupt()
 {
-	cdvdTD trackInfo;
+	cdvdCommon::cdvdTD trackInfo;
 	int i;
 	u8 Irq = cdr.Irq;
 
@@ -373,7 +373,7 @@ void cdrInterrupt()
 			SetResultSize(3);
 			cdr.StatP |= STATUS_ROTATING;
 			cdr.Result[0] = cdr.StatP;
-			if (CDVD->getTN(&cdr.ResultTN) == -1)
+			if (cdvdCommon::CDVD->getTN(&cdr.ResultTN) == -1)
 			{
 				cdr.Stat = DiskError;
 				cdr.Result[0] |= 0x01;
@@ -391,7 +391,7 @@ void cdrInterrupt()
 			cdr.Track = btoi(cdr.Param[0]);
 			SetResultSize(4);
 			cdr.StatP |= STATUS_ROTATING;
-			if (CDVD->getTD(cdr.Track, &trackInfo) == -1)
+			if (cdvdCommon::CDVD->getTD(cdr.Track, &trackInfo) == -1)
 			{
 				cdr.Stat = DiskError;
 				cdr.Result[0] |= 0x01;
@@ -569,7 +569,7 @@ void cdrReadInterrupt()
 
 	if (cdr.RErr == 0)
 	{
-		while ((cdr.RErr = DoCDVDgetBuffer(cdr.Transfer)), cdr.RErr == -2)
+		while ((cdr.RErr = cdvdCommon::DoCDVDgetBuffer(cdr.Transfer)), cdr.RErr == -2)
 		{
 			// not finished yet ... block on the read until it finishes.
 			Threading::Sleep(0);

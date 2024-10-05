@@ -50,7 +50,7 @@ struct cdrStruct
 	u8 Readed;
 	u32 Reading;
 
-	cdvdTN ResultTN;
+	cdvdCommon::cdvdTN ResultTN;
 	u8 ResultTD[4];
 	u8 SetSector[4];
 	u8 SetSectorSeek[4];

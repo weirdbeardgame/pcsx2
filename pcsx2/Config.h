@@ -31,17 +31,15 @@ class Error;
 class SettingsInterface;
 class SettingsWrapper;
 
-enum class CDVD_SourceType : uint8_t;
-
 namespace Pad
 {
-enum class ControllerType : u8;
+	enum class ControllerType : u8;
 }
 
 /// Generic setting information which can be reused in multiple components.
 struct SettingInfo
 {
-	using GetOptionsCallback = std::vector<std::pair<std::string, std::string>>(*)();
+	using GetOptionsCallback = std::vector<std::pair<std::string, std::string>> (*)();
 
 	enum class Type
 	{
@@ -647,7 +645,7 @@ struct Pcsx2Config
 					OsdShowInputs : 1,
 					OsdShowFrameTimes : 1,
 					OsdShowVersion : 1,
-					OsdShowVideoCapture: 1,
+					OsdShowVideoCapture : 1,
 					OsdShowInputRec : 1,
 					OsdShowHardwareInfo : 1,
 					HWSpinGPUForReadbacks : 1,
@@ -1149,10 +1147,10 @@ struct Pcsx2Config
 	{
 		SavestateOptions();
 		void LoadSave(SettingsWrapper& wrap);
-	
+
 		SavestateCompressionMethod CompressionType = SavestateCompressionMethod::Zstandard;
 		SavestateCompressionLevel CompressionRatio = SavestateCompressionLevel::Medium;
-		
+
 		bool operator==(const SavestateOptions& right) const;
 		bool operator!=(const SavestateOptions& right) const;
 	};

@@ -37,8 +37,6 @@ namespace GameList
 	struct Entry;
 }
 
-enum class CDVD_SourceType : uint8_t;
-
 class MainWindow final : public QMainWindow
 {
 	Q_OBJECT
@@ -275,8 +273,8 @@ private:
 	void loadSaveStateFile(const QString& filename, const QString& state_filename);
 	void populateLoadStateMenu(QMenu* menu, const QString& filename, const QString& serial, quint32 crc);
 	void populateSaveStateMenu(QMenu* menu, const QString& serial, quint32 crc);
-	void doStartFile(std::optional<CDVD_SourceType> source, const QString& path);
-	void doDiscChange(CDVD_SourceType source, const QString& path);
+	void doStartFile(std::optional<cdvdCommon::CDVD_SourceType> source, const QString& path);
+	void doDiscChange(cdvdCommon::CDVD_SourceType source, const QString& path);
 
 	Ui::MainWindow m_ui;
 

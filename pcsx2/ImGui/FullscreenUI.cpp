@@ -1015,7 +1015,7 @@ void FullscreenUI::DoStartDisc(const std::string& drive)
 
 		VMBootParameters params;
 		params.filename = std::move(drive);
-		params.source_type = CDVD_SourceType::Disc;
+		params.source_type = cdvdCommon::CDVD_SourceType::Disc;
 		if (VMManager::Initialize(params))
 			VMManager::SetState(VMState::Running);
 		else
@@ -1025,7 +1025,7 @@ void FullscreenUI::DoStartDisc(const std::string& drive)
 
 void FullscreenUI::DoStartDisc()
 {
-	std::vector<std::string> devices(GetOpticalDriveList());
+	std::vector<std::string> devices(cdvdCommon::GetOpticalDriveList());
 	if (devices.empty())
 	{
 		ShowToast(std::string(), FSUI_STR("Could not find any CD/DVD-ROM devices. Please ensure you have a drive connected and sufficient "
@@ -1117,7 +1117,7 @@ void FullscreenUI::DoChangeDiscFromFile()
 			}
 			else
 			{
-				Host::RunOnCPUThread([path]() { VMManager::ChangeDisc(CDVD_SourceType::Iso, std::move(path)); });
+				Host::RunOnCPUThread([path]() { VMManager::ChangeDisc(cdvdCommon::CDVD_SourceType::Iso, std::move(path)); });
 			}
 		}
 
@@ -3948,8 +3948,7 @@ void FullscreenUI::DrawGraphicsSettingsPage(SettingsInterface* bsi, bool show_ad
 	static constexpr const char* s_gsdump_compression[] = {
 		FSUI_NSTR("Uncompressed"),
 		FSUI_NSTR("LZMA (xz)"),
-		FSUI_NSTR("Zstandard (zst)")
-		};
+		FSUI_NSTR("Zstandard (zst)")};
 
 	if (show_advanced_settings)
 	{
@@ -4738,15 +4737,13 @@ void FullscreenUI::DrawAdvancedSettingsPage()
 		FSUI_NSTR("Uncompressed"),
 		FSUI_NSTR("Deflate64"),
 		FSUI_NSTR("Zstandard"),
-		FSUI_NSTR("LZMA2")
-	};
+		FSUI_NSTR("LZMA2")};
 
 	static constexpr const char* s_savestate_compression_ratio[] = {
 		FSUI_NSTR("Low (Fast)"),
 		FSUI_NSTR("Medium (Recommended)"),
 		FSUI_NSTR("High"),
-		FSUI_NSTR("Very High (Slow, Not Recommended)")
-	};
+		FSUI_NSTR("Very High (Slow, Not Recommended)")};
 
 	if (show_advanced_settings)
 	{
@@ -5775,7 +5772,7 @@ void FullscreenUI::DoLoadState(std::string path)
 		{
 			VMManager::LoadState(path.c_str());
 			if (!boot_path.empty() && VMManager::GetDiscPath() != boot_path)
-				VMManager::ChangeDisc(CDVD_SourceType::Iso, std::move(boot_path));
+				VMManager::ChangeDisc(cdvdCommon::CDVD_SourceType::Iso, std::move(boot_path));
 		}
 		else
 		{

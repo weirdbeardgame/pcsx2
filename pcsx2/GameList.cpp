@@ -139,19 +139,19 @@ void GameList::FillBootParametersForEntry(VMBootParameters* params, const Entry*
 	if (entry->type == GameList::EntryType::PS1Disc || entry->type == GameList::EntryType::PS2Disc)
 	{
 		params->filename = entry->path;
-		params->source_type = CDVD_SourceType::Iso;
+		params->source_type = cdvdCommon::CDVD_SourceType::Iso;
 		params->elf_override.clear();
 	}
 	else if (entry->type == GameList::EntryType::ELF)
 	{
 		params->filename = VMManager::GetDiscOverrideFromGameSettings(entry->path);
-		params->source_type = params->filename.empty() ? CDVD_SourceType::NoDisc : CDVD_SourceType::Iso;
+		params->source_type = params->filename.empty() ? cdvdCommon::CDVD_SourceType::NoDisc : cdvdCommon::CDVD_SourceType::Iso;
 		params->elf_override = entry->path;
 	}
 	else
 	{
 		params->filename.clear();
-		params->source_type = CDVD_SourceType::NoDisc;
+		params->source_type = cdvdCommon::CDVD_SourceType::NoDisc;
 		params->elf_override.clear();
 	}
 }
@@ -161,17 +161,17 @@ bool GameList::GetIsoSerialAndCRC(const std::string& path, s32* disc_type, std::
 	Error error;
 
 	// This isn't great, we really want to make it all thread-local...
-	CDVD = &CDVDapi_Iso;
-	if (!CDVD->open(path, &error))
+	cdvdCommon::CDVD = &cdvdCommon::CDVDapi_Iso;
+	if (!cdvdCommon::CDVD->open(path, &error))
 	{
 		Console.Error(fmt::format("(GameList::GetIsoSerialAndCRC) CDVD open of '{}' failed: {}", path, error.GetDescription()));
 		return false;
 	}
 
 	// TODO: we could include the version in the game list?
-	*disc_type = DoCDVDdetectDiskType();
+	*disc_type = cdvdCommon::DoCDVDdetectDiskType();
 	cdvdGetDiscInfo(serial, nullptr, nullptr, crc, nullptr);
-	DoCDVDclose();
+	cdvdCommon::DoCDVDclose();
 	return true;
 }
 

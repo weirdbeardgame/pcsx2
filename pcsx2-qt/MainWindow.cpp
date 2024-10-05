@@ -1314,7 +1314,7 @@ void MainWindow::onGameListEntryActivated()
 			return;
 		}
 
-		doDiscChange(CDVD_SourceType::Iso, QString::fromStdString(entry->path));
+		doDiscChange(cdvdCommon::CDVD_SourceType::Iso, QString::fromStdString(entry->path));
 		return;
 	}
 
@@ -1406,7 +1406,7 @@ void MainWindow::onGameListEntryContextMenuRequested(const QPoint& point)
 		{
 			action = menu.addAction(tr("Change Disc"));
 			connect(action, &QAction::triggered, [this, entry]() {
-				g_emu_thread->changeDisc(CDVD_SourceType::Iso, QString::fromStdString(entry->path));
+				g_emu_thread->changeDisc(cdvdCommon::CDVD_SourceType::Iso, QString::fromStdString(entry->path));
 				switchToEmulationView();
 			});
 			QtUtils::MarkActionAsDefault(action);
@@ -1437,7 +1437,7 @@ void MainWindow::onStartDiscActionTriggered()
 	if (path.isEmpty())
 		return;
 
-	doStartFile(CDVD_SourceType::Disc, path);
+	doStartFile(cdvdCommon::CDVD_SourceType::Disc, path);
 }
 
 void MainWindow::onStartBIOSActionTriggered()
@@ -1454,7 +1454,7 @@ void MainWindow::onChangeDiscFromFileActionTriggered()
 	if (filename.isEmpty())
 		return;
 
-	g_emu_thread->changeDisc(CDVD_SourceType::Iso, filename);
+	g_emu_thread->changeDisc(cdvdCommon::CDVD_SourceType::Iso, filename);
 }
 
 void MainWindow::onChangeDiscFromGameListActionTriggered()
@@ -1469,12 +1469,12 @@ void MainWindow::onChangeDiscFromDeviceActionTriggered()
 	if (path.isEmpty())
 		return;
 
-	g_emu_thread->changeDisc(CDVD_SourceType::Disc, path);
+	g_emu_thread->changeDisc(cdvdCommon::CDVD_SourceType::Disc, path);
 }
 
 void MainWindow::onRemoveDiscActionTriggered()
 {
-	g_emu_thread->changeDisc(CDVD_SourceType::NoDisc, QString());
+	g_emu_thread->changeDisc(cdvdCommon::CDVD_SourceType::NoDisc, QString());
 }
 
 void MainWindow::onChangeDiscMenuAboutToShow()
@@ -2144,7 +2144,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 	if (VMManager::IsDiscFileName(filename_str) || VMManager::IsBlockDumpFileName(filename_str))
 	{
 		event->acceptProposedAction();
-		doDiscChange(CDVD_SourceType::Iso, filename);
+		doDiscChange(cdvdCommon::CDVD_SourceType::Iso, filename);
 	}
 	else if (VMManager::IsElfFileName(filename_str))
 	{
@@ -2618,7 +2618,7 @@ QString MainWindow::getDiscDevicePath(const QString& title)
 {
 	QString ret;
 
-	const std::vector<std::string> devices(GetOpticalDriveList());
+	const std::vector<std::string> devices(cdvdCommon::GetOpticalDriveList());
 	if (devices.empty())
 	{
 		QMessageBox::critical(this, title,
@@ -2810,7 +2810,7 @@ void MainWindow::loadSaveStateFile(const QString& filename, const QString& state
 	if (s_vm_valid)
 	{
 		if (!filename.isEmpty() && s_current_disc_path != filename)
-			g_emu_thread->changeDisc(CDVD_SourceType::Iso, s_current_disc_path);
+			g_emu_thread->changeDisc(cdvdCommon::CDVD_SourceType::Iso, s_current_disc_path);
 		g_emu_thread->loadState(state_filename);
 	}
 	else
@@ -2943,7 +2943,7 @@ void MainWindow::updateGameDependentActions()
 	m_ui.actionReloadPatches->setEnabled(s_vm_valid);
 }
 
-void MainWindow::doStartFile(std::optional<CDVD_SourceType> source, const QString& path)
+void MainWindow::doStartFile(std::optional<cdvdCommon::CDVD_SourceType> source, const QString& path)
 {
 	if (s_vm_valid)
 		return;
@@ -2968,7 +2968,7 @@ void MainWindow::doStartFile(std::optional<CDVD_SourceType> source, const QStrin
 	g_emu_thread->startVM(std::move(params));
 }
 
-void MainWindow::doDiscChange(CDVD_SourceType source, const QString& path)
+void MainWindow::doDiscChange(cdvdCommon::CDVD_SourceType source, const QString& path)
 {
 	const auto lock = pauseAndLockVM();
 

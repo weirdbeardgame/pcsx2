@@ -10,61 +10,64 @@
 class Error;
 class ProgressCallback;
 
-typedef struct _cdvdTrackIndex
+namespace cdvdCommon
 {
-	bool isPregap;
-	u8 trackM; // current minute offset from first track (BCD encoded)
-	u8 trackS; // current sector offset from first track (BCD encoded)
-	u8 trackF; // current frame offset from first track (BCD encoded)
-	u8 discM; // current minute location on the disc (BCD encoded)
-	u8 discS; // current sector location on the disc (BCD encoded)
-	u8 discF; // current frame location on the disc (BCD encoded)
 
-} cdvdTrackIndex;
+	typedef struct _cdvdTrackIndex
+	{
+		bool isPregap;
+		u8 trackM; // current minute offset from first track (BCD encoded)
+		u8 trackS; // current sector offset from first track (BCD encoded)
+		u8 trackF; // current frame offset from first track (BCD encoded)
+		u8 discM; // current minute location on the disc (BCD encoded)
+		u8 discS; // current sector location on the disc (BCD encoded)
+		u8 discF; // current frame location on the disc (BCD encoded)
 
-typedef struct _cdvdTrack
-{
-	u32 start_lba; // Starting lba of track, note that some formats will be missing 2 seconds, cue, bin
-	u8 type; // Track Type
-	u8 trackNum; // current track number (1 to 99)
-	u8 trackIndex; // current index within track (0 to 99)
-	u8 trackM; // current minute offset from first track (BCD encoded)
-	u8 trackS; // current sector offset from first track (BCD encoded)
-	u8 trackF; // current frame offset from first track (BCD encoded)
-	u8 discM; // current minute location on the disc (BCD encoded)
-	u8 discS; // current sector location on the disc (BCD encoded)
-	u8 discF; // current frame location on the disc (BCD encoded)
+	} cdvdTrackIndex;
 
-	// 0 is pregap, 1 is data
-	_cdvdTrackIndex index[2];
-} cdvdTrack;
+	typedef struct _cdvdTrack
+	{
+		u32 start_lba; // Starting lba of track, note that some formats will be missing 2 seconds, cue, bin
+		u8 type; // Track Type
+		u8 trackNum; // current track number (1 to 99)
+		u8 trackIndex; // current index within track (0 to 99)
+		u8 trackM; // current minute offset from first track (BCD encoded)
+		u8 trackS; // current sector offset from first track (BCD encoded)
+		u8 trackF; // current frame offset from first track (BCD encoded)
+		u8 discM; // current minute location on the disc (BCD encoded)
+		u8 discS; // current sector location on the disc (BCD encoded)
+		u8 discF; // current frame location on the disc (BCD encoded)
 
-typedef struct _cdvdSubQ
-{
-	u8 ctrl : 4; // control and adr bits
-	u8 adr : 4; // control and adr bits, note that adr determines what SubQ info we're recieving.
-	u8 trackNum; // current track number (1 to 99)
-	u8 trackIndex; // current index within track (0 to 99)
-	u8 trackM; // current minute offset from first track (BCD encoded)
-	u8 trackS; // current sector offset from first track (BCD encoded)
-	u8 trackF; // current frame offset from first track (BCD encoded)
-	u8 pad; // unused
-	u8 discM; // current minute location on the disc (BCD encoded)
-	u8 discS; // current sector location on the disc (BCD encoded)
-	u8 discF; // current frame location on the disc (BCD encoded)
-} cdvdSubQ;
+		// 0 is pregap, 1 is data
+		_cdvdTrackIndex index[2];
+	} cdvdTrack;
 
-typedef struct _cdvdTD
-{ // NOT bcd coded
-	u32 lsn;
-	u8 type;
-} cdvdTD;
+	typedef struct _cdvdSubQ
+	{
+		u8 ctrl : 4; // control and adr bits
+		u8 adr : 4; // control and adr bits, note that adr determines what SubQ info we're recieving.
+		u8 trackNum; // current track number (1 to 99)
+		u8 trackIndex; // current index within track (0 to 99)
+		u8 trackM; // current minute offset from first track (BCD encoded)
+		u8 trackS; // current sector offset from first track (BCD encoded)
+		u8 trackF; // current frame offset from first track (BCD encoded)
+		u8 pad; // unused
+		u8 discM; // current minute location on the disc (BCD encoded)
+		u8 discS; // current sector location on the disc (BCD encoded)
+		u8 discF; // current frame location on the disc (BCD encoded)
+	} cdvdSubQ;
 
-typedef struct _cdvdTN
-{
-	u8 strack; //number of the first track (usually 1)
-	u8 etrack; //number of the last track
-} cdvdTN;
+	typedef struct _cdvdTD
+	{ // NOT bcd coded
+		u32 lsn;
+		u8 type;
+	} cdvdTD;
+
+	typedef struct _cdvdTN
+	{
+		u8 strack; //number of the first track (usually 1)
+		u8 etrack; //number of the last track
+	} cdvdTN;
 
 // SpindleCtrl Masks
 #define CDVD_SPINDLE_SPEED 0x7 // Speed ranges from 0-3 (1, 2, 3, 4x for DVD) and 0-5 (1, 2, 4, 12, 24x for CD)
@@ -111,93 +114,95 @@ typedef struct _cdvdTN
 
 #define CDVD_AUDIO_MASK 0x00
 #define CDVD_DATA_MASK 0x40
-//	CDROM_DATA_TRACK	0x04	//do not enable this! (from linux kernel)
+	//	CDROM_DATA_TRACK	0x04	//do not enable this! (from linux kernel)
 
-// CDVD
-typedef bool (*_CDVDopen)(std::string filename, Error* error);
-typedef bool (*_CDVDprecache)(ProgressCallback* progress, Error* error);
+	// CDVD
+	typedef bool (*_CDVDopen)(std::string filename, Error* error);
+	typedef bool (*_CDVDprecache)(ProgressCallback* progress, Error* error);
 
-// Initiates an asynchronous track read operation.
-// Returns -1 on error (invalid track)
-// Returns 0 on success.
-typedef s32 (*_CDVDreadTrack)(u32 lsn, int mode);
+	// Initiates an asynchronous track read operation.
+	// Returns -1 on error (invalid track)
+	// Returns 0 on success.
+	typedef s32 (*_CDVDreadTrack)(u32 lsn, int mode);
 
-// Copies loaded data to the target buffer.
-// Returns -2 if the asynchronous read is still pending.
-// Returns -1 if the asyncronous read failed.
-// Returns 0 on success.
-typedef s32 (*_CDVDgetBuffer)(u8* buffer);
+	// Copies loaded data to the target buffer.
+	// Returns -2 if the asynchronous read is still pending.
+	// Returns -1 if the asyncronous read failed.
+	// Returns 0 on success.
+	typedef s32 (*_CDVDgetBuffer)(u8* buffer);
 
-typedef s32 (*_CDVDreadSubQ)(u32 lsn, cdvdSubQ* subq);
-typedef s32 (*_CDVDgetTN)(cdvdTN* Buffer);
-typedef s32 (*_CDVDgetTD)(u8 Track, cdvdTD* Buffer);
-typedef s32 (*_CDVDgetTOC)(void* toc);
-typedef s32 (*_CDVDgetDiskType)();
-typedef s32 (*_CDVDgetTrayStatus)();
-typedef s32 (*_CDVDctrlTrayOpen)();
-typedef s32 (*_CDVDctrlTrayClose)();
-typedef s32 (*_CDVDreadSector)(u8* buffer, u32 lsn, int mode);
-typedef s32 (*_CDVDgetDualInfo)(s32* dualType, u32* _layer1start);
+	typedef s32 (*_CDVDreadSubQ)(u32 lsn, cdvdSubQ* subq);
+	typedef s32 (*_CDVDgetTN)(cdvdTN* Buffer);
+	typedef s32 (*_CDVDgetTD)(u8 Track, cdvdTD* Buffer);
+	typedef s32 (*_CDVDgetTOC)(void* toc);
+	typedef s32 (*_CDVDgetDiskType)();
+	typedef s32 (*_CDVDgetTrayStatus)();
+	typedef s32 (*_CDVDctrlTrayOpen)();
+	typedef s32 (*_CDVDctrlTrayClose)();
+	typedef s32 (*_CDVDreadSector)(u8* buffer, u32 lsn, int mode);
+	typedef s32 (*_CDVDgetDualInfo)(s32* dualType, u32* _layer1start);
 
-typedef void (*_CDVDnewDiskCB)(void (*callback)());
+	typedef void (*_CDVDnewDiskCB)(void (*callback)());
 
-enum class CDVD_SourceType : uint8_t
-{
-	Iso, // use built in ISO api
-	Disc, // use built in Disc api
-	NoDisc, // use built in CDVDnull
-};
+	enum class CDVD_SourceType : uint8_t
+	{
+		Iso, // use built in ISO api
+		Disc, // use built in Disc api
+		NoDisc, // use built in CDVDnull
+	};
 
-struct CDVD_API
-{
-	void (*close)();
+	struct CDVD_API
+	{
+		void (*close)();
 
-	// Don't need init or shutdown.  iso/nodisc have no init/shutdown.
+		// Don't need init or shutdown.  iso/nodisc have no init/shutdown.
 
-	_CDVDopen open;
-	_CDVDprecache precache;
-	_CDVDreadTrack readTrack;
-	_CDVDgetBuffer getBuffer;
-	_CDVDreadSubQ readSubQ;
-	_CDVDgetTN getTN;
-	_CDVDgetTD getTD;
-	_CDVDgetTOC getTOC;
-	_CDVDgetDiskType getDiskType;
-	_CDVDgetTrayStatus getTrayStatus;
-	_CDVDctrlTrayOpen ctrlTrayOpen;
-	_CDVDctrlTrayClose ctrlTrayClose;
-	_CDVDnewDiskCB newDiskCB;
+		_CDVDopen open;
+		_CDVDprecache precache;
+		_CDVDreadTrack readTrack;
+		_CDVDgetBuffer getBuffer;
+		_CDVDreadSubQ readSubQ;
+		_CDVDgetTN getTN;
+		_CDVDgetTD getTD;
+		_CDVDgetTOC getTOC;
+		_CDVDgetDiskType getDiskType;
+		_CDVDgetTrayStatus getTrayStatus;
+		_CDVDctrlTrayOpen ctrlTrayOpen;
+		_CDVDctrlTrayClose ctrlTrayClose;
+		_CDVDnewDiskCB newDiskCB;
 
-	// special functions, not in external interface yet
-	_CDVDreadSector readSector;
-	_CDVDgetDualInfo getDualInfo;
-};
+		// special functions, not in external interface yet
+		_CDVDreadSector readSector;
+		_CDVDgetDualInfo getDualInfo;
+	};
 
-// ----------------------------------------------------------------------------
-//   Multiple interface system for CDVD.
-// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	//   Multiple interface system for CDVD.
+	// ----------------------------------------------------------------------------
 
-extern const CDVD_API* CDVD; // currently active CDVD access mode api (either Iso, NoDisc, or Disc)
+	extern const CDVD_API* CDVD; // currently active CDVD access mode api (either Iso, NoDisc, or Disc)
 
-extern const CDVD_API CDVDapi_Iso;
-extern const CDVD_API CDVDapi_Disc;
-extern const CDVD_API CDVDapi_NoDisc;
+	extern const CDVD_API CDVDapi_Iso;
+	extern const CDVD_API CDVDapi_Disc;
+	extern const CDVD_API CDVDapi_NoDisc;
 
-extern u8 strack;
-extern u8 etrack;
-extern cdvdTrack tracks[100];
+	extern u8 strack;
+	extern u8 etrack;
+	extern cdvdTrack tracks[100];
 
-extern void CDVDsys_ChangeSource(CDVD_SourceType type);
-extern void CDVDsys_SetFile(CDVD_SourceType srctype, std::string newfile);
-extern const std::string& CDVDsys_GetFile(CDVD_SourceType srctype);
-extern CDVD_SourceType CDVDsys_GetSourceType();
-extern void CDVDsys_ClearFiles();
+	extern void CDVDsys_ChangeSource(CDVD_SourceType type);
+	extern void CDVDsys_SetFile(CDVD_SourceType srctype, std::string newfile);
+	extern const std::string& CDVDsys_GetFile(CDVD_SourceType srctype);
+	extern CDVD_SourceType CDVDsys_GetSourceType();
+	extern void CDVDsys_ClearFiles();
 
-extern bool DoCDVDopen(Error* error);
-extern bool DoCDVDprecache(ProgressCallback* progress, Error* error);
-extern void DoCDVDclose();
-extern s32 DoCDVDreadSector(u8* buffer, u32 lsn, int mode);
-extern s32 DoCDVDreadTrack(u32 lsn, int mode);
-extern s32 DoCDVDgetBuffer(u8* buffer);
-extern s32 DoCDVDdetectDiskType();
-extern void DoCDVDresetDiskTypeCache();
+	extern bool DoCDVDopen(Error* error);
+	extern bool DoCDVDprecache(ProgressCallback* progress, Error* error);
+	extern void DoCDVDclose();
+	extern s32 DoCDVDreadSector(u8* buffer, u32 lsn, int mode);
+	extern s32 DoCDVDreadTrack(u32 lsn, int mode);
+	extern s32 DoCDVDgetBuffer(u8* buffer);
+	extern s32 DoCDVDdetectDiskType();
+	extern void DoCDVDresetDiskTypeCache();
+
+} // namespace cdvdCommon
