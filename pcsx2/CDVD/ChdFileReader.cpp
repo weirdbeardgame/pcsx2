@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2002-2024 PCSX2 Dev Team
 // SPDX-License-Identifier: GPL-3.0+
 
+#include <array>
+
 #include "ChdFileReader.h"
 
 #include "common/Assertions.h"
@@ -19,6 +21,20 @@
 static constexpr u32 MAX_PARENTS = 32; // Surely someone wouldn't be insane enough to go beyond this...
 static std::vector<std::pair<std::string, chd_header>> s_chd_hash_cache; // <filename, header>
 static std::recursive_mutex s_chd_hash_cache_mutex;
+
+static u8 dec_to_bcd(u8 dec)
+{
+	return ((dec / 10) << 4) | (dec % 10);
+}
+
+static void lsn_to_msf(u8* minute, u8* second, u8* frame, u32 lsn)
+{
+	*frame = dec_to_bcd(lsn % 75);
+	lsn /= 75;
+	*second = dec_to_bcd(lsn % 60);
+	lsn /= 60;
+	*minute = dec_to_bcd(lsn % 100);
+}
 
 ChdFileReader::ChdFileReader() = default;
 
@@ -332,10 +348,29 @@ bool ChdFileReader::ParseTOC(u64* out_frame_count, std::vector<toc_entry>& entri
 			entry.adr = 1;
 			entry.control = 0;
 
-			//FIXME: DATA track?
-			if (strncmp(type_str, "AUDIO", 5) != 0)
-				entry.control |= 0x04;
+			cdvdTrack track{};
+			cdvdTrackIndex index{};
+			if (pregap_frames > 0)
+			{
+				index.isPregap = true;
+				index.index_lba = pregap_frames;
+				lsn_to_msf(&index.discM, &index.discS, &index.discF, total_frames);
+				lsn_to_msf(&index.trackM, &index.trackS, &index.trackF, pregap_frames);
+				track.index[0] = index;
 
+				// ToDo: add to total frame count here?
+			}
+
+			track.trackNum = track_num;
+			track.type = trackModes[type_str];
+			track.start_lba = total_frames;
+			lsn_to_msf(&track.discM, &track.discS, &track.discF, track.start_lba);
+
+			//FIXME: DATA track?
+			//if (strncmp(type_str, "AUDIO", 5) != 0)
+				//entry.control |= 0x04;
+
+			tracks[track_num] = track;
 			entries.push_back(entry);
 		}
 

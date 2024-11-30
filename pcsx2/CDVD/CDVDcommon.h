@@ -13,13 +13,13 @@ class ProgressCallback;
 struct cdvdTrackIndex
 {
 	bool isPregap;
+	u32 index_lba;
 	u8 trackM; // current minute offset from first track (BCD encoded)
 	u8 trackS; // current sector offset from first track (BCD encoded)
 	u8 trackF; // current frame offset from first track (BCD encoded)
 	u8 discM; // current minute location on the disc (BCD encoded)
 	u8 discS; // current sector location on the disc (BCD encoded)
 	u8 discF; // current frame location on the disc (BCD encoded)
-
 };
 
 struct cdvdTrack
@@ -36,7 +36,7 @@ struct cdvdTrack
 	u8 discF; // current frame location on the disc (BCD encoded)
 
 	// 0 is pregap, 1 is data
-	cdvdTrackIndex index[2];
+	std::array<cdvdTrackIndex, 99> index;
 };
 
 struct cdvdSubQ

@@ -4,8 +4,15 @@
 #pragma once
 #include "ThreadedFileReader.h"
 #include <vector>
+#include <map>
 
 typedef struct _chd_file chd_file;
+
+static std::map<std::string, u8> trackModes{
+	{"MODE1_RAW", CDVD_MODE_2352},
+	{"MODE1", CDVD_MODE1_TRACK},
+	{"MODE2", CDVD_MODE2_TRACK},
+	{"AUDIO", CDVD_AUDIO_TRACK}};
 
 class ChdFileReader final : public ThreadedFileReader
 {
@@ -16,7 +23,7 @@ public:
 	~ChdFileReader() override;
 
 	bool Open2(std::string filename, Error* error) override;
-	
+
 	bool Precache2(ProgressCallback* progress, Error* error) override;
 
 	std::vector<toc_entry> ReadTOC() override;
